@@ -2,10 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/sb"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_gray"
+    android:background="@color/black"
     android:orientation="vertical"
     tools:context=".MusicPlayerFragment">
 
@@ -20,7 +19,8 @@
         android:layout_weight="1"
         android:gravity="center_horizontal|center_vertical"
         android:text="Playing now..."
-        android:textSize="16sp" />
+        android:textColor="@color/white"
+        android:textSize="24sp" />
 
     <ImageView
         android:id="@+id/ivCover"
@@ -44,7 +44,9 @@
         android:gravity="center_horizontal|center_vertical"
         android:maxLines="2"
         android:minLines="1"
-        android:textSize="20sp"
+        android:text="Song title will be displayed here"
+        android:textColor="@color/white"
+        android:textSize="24sp"
         android:textStyle="bold" />
 
     <SeekBar
@@ -53,7 +55,10 @@
         android:layout_height="0dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:progressBackgroundTint="@color/white"
+        android:progressTint="@color/teal_200"
+        android:thumbTint="@color/teal_200" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

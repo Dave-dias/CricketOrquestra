@@ -44,9 +44,8 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         setContentView(R.layout.activity_main);
 
         ActivityCompat.requestPermissions(this, new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 0);
-        MainActivity.songList = loadSongList();
         playedSongs = new ArrayList<>();
-
+        loadSongList();
 
         if (!songList.isEmpty()){
             mediaPlayer = MediaPlayer.create(this, songList.get(0).getSourceFolder());
@@ -349,6 +348,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                     , Uri.parse(singleFile.getPath())));
         }
 
+        MainActivity.songList = songList;
         return songList;
     }
 

@@ -8,13 +8,13 @@
     <androidx.cardview.widget.CardView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="3dp"
-        android:layout_marginTop="3dp"
-        android:layout_marginRight="3dp"
-        android:layout_marginBottom="3dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginBottom="5dp"
         android:layout_weight="1"
-        app:cardCornerRadius="5dp"
-        app:cardElevation="5dp"
+        app:cardCornerRadius="10dp"
+        app:cardElevation="8dp"
         app:cardUseCompatPadding="false">
 
         <LinearLayout
@@ -31,7 +31,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="2"
-                app:srcCompat="@drawable/ic_music_note"
+                app:srcCompat="@drawable/ic_audio_file"
                 tools:ignore="ContentDescription" />
 
             <LinearLayout
@@ -44,8 +44,10 @@
                     android:id="@+id/tvCardName"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:gravity="center"
                     android:maxLines="2"
                     android:minLines="2"
+                    android:text="Song title will be displayed here"
                     android:textSize="20sp"
                     android:textStyle="bold" />
 
