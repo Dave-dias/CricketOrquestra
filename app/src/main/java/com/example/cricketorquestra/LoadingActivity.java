@@ -1,9 +1,15 @@
 package com.example.cricketorquestra;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -13,6 +19,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class LoadingActivity extends AppCompatActivity {
+    final int REQUEST_CODE = 1;
     ArrayList<SongClass> songList;
     Intent intent;
 
@@ -21,7 +28,11 @@ public class LoadingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_loading);
 
-        ActivityCompat.requestPermissions(this, new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 0);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    REQUEST_CODE);
+        }
+
         songList = loadSongList();
 
         if (!songList.isEmpty()){
@@ -34,9 +45,38 @@ public class LoadingActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_CODE){
+            if (grantResults[0] == PackageManager.PERMISSION_DENIED){
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+
+                alertDialog.setMessage("The app needs this permission to find your songs," +
+                                " if not granted the app will not function properly!")
+                                .setTitle("Permission was denied");
+                alertDialog.setPositiveButton("Ok, I'll grant it!", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ActivityCompat.requestPermissions(LoadingActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                                REQUEST_CODE);
+                    }
+                });
+
+                alertDialog.setNegativeButton("No, I won't grant it!", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(LoadingActivity.this, "The app will not function properly!", Toast.LENGTH_LONG).show();
+                    }
+                });
+
+
+            }
+        }
+    }
 
     public ArrayList<SongClass> loadSongList() {
-        Toast.makeText(this,"Looking audio archives...", Toast.LENGTH_SHORT).show();
         ArrayList<File> fileArray = findFiles(Environment.getExternalStorageDirectory());
         ArrayList<SongClass> songList = new ArrayList<>();
 

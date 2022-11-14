@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     MediaPlayer mediaPlayer;
     Timer timer;
 
-    final int LOADING_SCREEN = 1;
     static ArrayList<SongClass> songList;
     ArrayList<Integer> playedSongs;
     PlayerStates currentState;
@@ -47,13 +46,8 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         setContentView(R.layout.activity_main);
 
         playedSongs = new ArrayList<>();
-
-        if (getIntent().getBooleanExtra("wasFound", false)){
-             mediaPlayer = MediaPlayer.create(this, songList.get(0).getSourceFolder());
-             currentState = PlayerStates.REPEAT_OFF;
-             setOnViews();
-             setMusicPlayerUp();
-        }
+        mediaPlayer = MediaPlayer.create(this, songList.get(0).getSourceFolder());
+        currentState = PlayerStates.REPEAT_OFF;
 
         fragmentManager = getSupportFragmentManager();
         SongLibraryFragment = new SongLibraryFragment();
@@ -65,6 +59,13 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 .hide(SongLibraryFragment)
                 .show(MusicPlayerFragment)
                 .commitNow();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setOnViews();
+        setMusicPlayerUp();
     }
 
     private void setOnViews(){
