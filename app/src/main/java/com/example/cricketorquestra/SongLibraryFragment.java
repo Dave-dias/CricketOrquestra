@@ -35,7 +35,7 @@ public class SongLibraryFragment extends Fragment {
         layoutManager = new LinearLayoutManager(this.getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        myAdapter = new SongLibraryAdapter(musicHandler);
+        myAdapter = new SongLibraryAdapter(musicHandler, MainActivity.songList);
         recyclerView.setAdapter(myAdapter);
     }
 

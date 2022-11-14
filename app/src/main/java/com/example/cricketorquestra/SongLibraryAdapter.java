@@ -14,17 +14,11 @@ import java.util.ArrayList;
 public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.ViewHolder> {
     static MusicHandler musicHandler;
 
-    ArrayList<SongClass> SongList;
+    ArrayList<SongClass> songList;
 
-    SongLibraryAdapter (MusicHandler fromParent){
+    SongLibraryAdapter (MusicHandler fromParent, ArrayList<SongClass> songList){
         musicHandler = fromParent;
-        reloadList();
-    }
-
-    public void reloadList(){
-        ArrayList<SongClass> newList = musicHandler.loadSongList();
-        MainActivity.songList = newList;
-        SongList = newList;
+        this.songList = songList;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
@@ -60,11 +54,11 @@ public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.
     @Override
     public void onBindViewHolder(@NonNull SongLibraryAdapter.ViewHolder holder, int position) {
         holder.getIvCardCover();
-        holder.getTvCardName().setText((SongList.get(position).getTitle().toString()));
+        holder.getTvCardName().setText((songList.get(position).getTitle().toString()));
     }
 
     @Override
     public int getItemCount() {
-        return SongList.size();
+        return songList.size();
     }
 }

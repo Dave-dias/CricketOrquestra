@@ -1,6 +1,7 @@
 package com.example.cricketorquestra;
 
 import android.content.Context;
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
@@ -33,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     MediaPlayer mediaPlayer;
     Timer timer;
 
+    final int LOADING_SCREEN = 1;
     static ArrayList<SongClass> songList;
     ArrayList<Integer> playedSongs;
     PlayerStates currentState;
@@ -43,16 +46,13 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ActivityCompat.requestPermissions(this, new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 0);
         playedSongs = new ArrayList<>();
-        loadSongList();
 
-        if (!songList.isEmpty()){
-            mediaPlayer = MediaPlayer.create(this, songList.get(0).getSourceFolder());
-            currentState = PlayerStates.REPEAT_OFF;
-        } else {
-            Toast.makeText(this, "No audio archive was found!", Toast.LENGTH_LONG).show();
-            finish();
+        if (getIntent().getBooleanExtra("wasFound", false)){
+             mediaPlayer = MediaPlayer.create(this, songList.get(0).getSourceFolder());
+             currentState = PlayerStates.REPEAT_OFF;
+             setOnViews();
+             setMusicPlayerUp();
         }
 
         fragmentManager = getSupportFragmentManager();
@@ -66,14 +66,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 .show(MusicPlayerFragment)
                 .commitNow();
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setOnViews();
-        setMusicPlayerUp();
-    }
-
 
     private void setOnViews(){
         tvNavBarLibrary = findViewById(R.id.tvNavLibrary);
@@ -336,37 +328,4 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 break;
         }
     }
-
-    @Override
-    public ArrayList<SongClass> loadSongList() {
-        Toast.makeText(this,"Looking audio archives...", Toast.LENGTH_SHORT).show();
-        ArrayList<File> fileArray = findFiles(Environment.getExternalStorageDirectory());
-        ArrayList<SongClass> songList = new ArrayList<>();
-
-        for (File singleFile: fileArray){
-            songList.add(new SongClass(singleFile.getName().replace(".mp3", "").replace(".wav","")
-                    , Uri.parse(singleFile.getPath())));
-        }
-
-        MainActivity.songList = songList;
-        return songList;
-    }
-
-
-    private ArrayList<File> findFiles (File fileToScan){
-        ArrayList<File> fileArray = new ArrayList<>();
-        File[] files = fileToScan.listFiles();
-
-        if (files != null) {
-            for (File singleFile: files){
-                if (singleFile.isDirectory() && !singleFile.isHidden()){
-                    fileArray.addAll(findFiles(singleFile));
-                } else if (singleFile.getName().endsWith(".mp3") || singleFile.getName().endsWith(".wav")){
-                    fileArray.add(singleFile);
-                }
-            }
-        }
-        return fileArray;
-    }
-
 }
