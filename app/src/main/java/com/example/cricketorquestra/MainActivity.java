@@ -39,11 +39,13 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
 
         songList = SplashScreenActivity.songList;
         playedSongs = new ArrayList<>();
+        mediaPlayer = MediaPlayer.create(this, songList.get(0).getSourceFolder());
         currentState = PlayerStates.REPEAT_OFF;
 
         fragmentManager = getSupportFragmentManager();
         SongLibraryFragment = new SongLibraryFragment();
         MusicPlayerFragment = new MusicPlayerFragment();
+
 
         fragmentManager.beginTransaction()
                 .add(R.id.FragmentContainer, SongLibraryFragment)
@@ -201,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         currentSong = index;
         mediaPlayer.reset();
         mediaPlayer = MediaPlayer.create(this, songList.get(index).getSourceFolder());
-        setMediaCompleteListener();
+        setMusicPlayerUp();
         playPauseSwitch();
     }
 

@@ -1,5 +1,6 @@
 package com.example.cricketorquestra;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,8 +17,8 @@ public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.
 
     ArrayList<SongClass> songList;
 
-    SongLibraryAdapter (MusicHandler fromParent, ArrayList<SongClass> songList){
-        musicHandler = fromParent;
+    SongLibraryAdapter (Context context, ArrayList<SongClass> songList){
+        musicHandler = (MusicHandler) context;
         this.songList = songList;
     }
 
@@ -30,7 +31,7 @@ public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.
             ivCardCover = (ImageView) itemView.findViewById(R.id.ivCardCover);
             tvCardName = itemView.findViewById(R.id.tvCardName);
 
-            itemView.setOnClickListener(v -> {
+            tvCardName.setOnClickListener(v -> {
                 musicHandler.onMusicSelected(getAdapterPosition());
             });
         }
