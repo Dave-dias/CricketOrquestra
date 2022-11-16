@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
     <item
-        android:id="@+id/navigation_song_library"
-        android:icon="@drawable/ic_library_music"
+        android:id="@+id/btnReloadList"
+        android:icon="@drawable/ic_refresh"
         android:title="Songs" />
-
-    <item
-        android:id="@+id/navigation_player_music"
-        android:icon="@drawable/ic_queue_music"
-        android:title="Player"/>
-
-
 </menu>

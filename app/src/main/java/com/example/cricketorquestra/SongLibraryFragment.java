@@ -13,9 +13,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class SongLibraryFragment extends Fragment {
     static MusicHandler musicHandler;
+    static SongLibraryAdapter myAdapter;
     RecyclerView.LayoutManager layoutManager;
     RecyclerView recyclerView;
-    SongLibraryAdapter myAdapter;
     View view;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -39,4 +39,8 @@ public class SongLibraryFragment extends Fragment {
         recyclerView.setAdapter(myAdapter);
     }
 
+    public static void reloadList (int index){
+        myAdapter.refreshSongList();
+        myAdapter.notifyDataSetChanged();
+    }
 }

@@ -61,4 +61,8 @@ public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.
     public int getItemCount() {
         return songList.size();
     }
+
+    public void refreshSongList(){
+        this.songList = MainActivity.songList;
+    }
 }

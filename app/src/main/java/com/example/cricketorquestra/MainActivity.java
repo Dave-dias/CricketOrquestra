@@ -1,31 +1,23 @@
 package com.example.cricketorquestra;
 
-import android.content.Context;
-import android.content.Intent;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements MusicHandler {
     enum displayedFragment {SONG_LIBRARY, MUSIC_PLAYER}
+
     ImageView ivCover, ivPausePlay, ivSkipNext, ivSkipPrevious, ivShuffle, ivRepeat;
     TextView tvSongTitle, tvNavBarLibrary, tvNavBarPlayer;
     SeekBar sbPlayerBar;
@@ -33,20 +25,20 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     Fragment MusicPlayerFragment, SongLibraryFragment;
     FragmentManager fragmentManager;
     MediaPlayer mediaPlayer;
-    Timer timer;
 
     static ArrayList<SongClass> songList;
     ArrayList<Integer> playedSongs;
     PlayerStates currentState;
     int currentSong;
+    Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        songList = SplashScreenActivity.songList;
         playedSongs = new ArrayList<>();
-        mediaPlayer = MediaPlayer.create(this, songList.get(0).getSourceFolder());
         currentState = PlayerStates.REPEAT_OFF;
 
         fragmentManager = getSupportFragmentManager();
@@ -97,7 +89,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 fragmentSwitch(displayedFragment.SONG_LIBRARY);
             }
         });
-
 
         ivPausePlay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -329,4 +320,5 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 break;
         }
     }
+
 }
