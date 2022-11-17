@@ -35,15 +35,15 @@ public class SplashScreenActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     REQUEST_CODE);
+        }
+
+        loadSongList();
+        if (songList.isEmpty()){
+            Toast.makeText(this, "No audio file was found! Closing the app...", Toast.LENGTH_LONG).show();
+            finish();
         } else {
-            loadSongList();
-            if (songList.isEmpty()){
-                Toast.makeText(this, "No audio file was found! Closing the app...", Toast.LENGTH_LONG).show();
-                finish();
-            } else {
-                intent = new Intent(this, MainActivity.class);
-                startActivity(intent);
-            }
+            intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
         }
     }
 
