@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -203,8 +204,8 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         currentSong = index;
         mediaPlayer.reset();
         mediaPlayer = MediaPlayer.create(this, songList.get(index).getSourceFolder());
+        mediaPlayer.start();
         setMusicPlayerUp();
-        playPauseSwitch();
     }
 
     public void playPauseSwitch() {
