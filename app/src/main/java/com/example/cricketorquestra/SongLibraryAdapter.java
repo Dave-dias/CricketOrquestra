@@ -31,7 +31,7 @@ public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.
             ivCardCover = (ImageView) itemView.findViewById(R.id.ivCardCover);
             tvCardName = itemView.findViewById(R.id.tvCardName);
 
-            tvCardName.setOnClickListener(v -> {
+            itemView.setOnClickListener(v -> {
                 musicHandler.onMusicSelected(getAdapterPosition());
             });
         }
@@ -61,9 +61,5 @@ public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.
     @Override
     public int getItemCount() {
         return songList.size();
-    }
-
-    public void refreshSongList(){
-        this.songList = MainActivity.songList;
     }
 }

@@ -31,13 +31,13 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     ArrayList<Integer> playedSongs;
     PlayerStates currentState;
     int currentSong;
-    Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Setando os fragementos, arrays e criando o media player
         songList = SplashScreenActivity.songList;
         playedSongs = new ArrayList<>();
         mediaPlayer = MediaPlayer.create(this, songList.get(0).getSourceFolder());
@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         SongLibraryFragment = new SongLibraryFragment();
         MusicPlayerFragment = new MusicPlayerFragment();
 
-
         fragmentManager.beginTransaction()
                 .add(R.id.FragmentContainer, SongLibraryFragment)
                 .add(R.id.FragmentContainer, MusicPlayerFragment)
@@ -56,6 +55,8 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 .commitNow();
     }
 
+    // Caso tente setar no onCreate, as views não são encontradas
+    // pois não foram criadas ainda
     @Override
     protected void onResume() {
         super.onResume();
@@ -161,11 +162,11 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                         .show(MusicPlayerFragment)
                         .hide(SongLibraryFragment)
                         .commitNow();
-                setMusicPlayerUp();
                 break;
         }
     }
 
+    // Checando o estado do player para saber qual o proximo passo
     private void setMediaCompleteListener(){
         mediaPlayer.setOnCompletionListener(mp -> {
             switch (currentState){
@@ -199,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         });
     }
 
+    // Crio e dou start no audio selecionado
     @Override
     public void onMusicSelected(int index) {
         currentSong = index;
@@ -221,6 +223,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         }
     }
 
+    // Alterna os estados do player
     public void shuffleSwitch() {
         if (currentState == PlayerStates.SHUFFLE_ON) {
             currentState = PlayerStates.SHUFFLE_OFF;
@@ -232,6 +235,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         }
     }
 
+    // Alterna os estados do playe
     public void repeatSwitch() {
         ivShuffle.setImageResource(R.drawable.ic_shuffle);
         switch (currentState){
@@ -250,7 +254,9 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         }
     }
 
+    // Verifica se existe audio anterior, se existe seleciona o audio
     public void previousAudio() {
+        // Caso o shuffle esteja ativado chama um novo audio aleatorio
         if (currentState.equals(PlayerStates.SHUFFLE_ON)){
             onMusicSelected(sortRandomSong());
         } else if (currentSong != 0) {
@@ -261,34 +267,44 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         setMusicPlayerUp();
     }
 
+    // Verifica se existe audio posterior, se existe seleciona o audio
     public void nextAudio() {
+        // Caso o shuffle esteja ativado chama um novo audio aleatorio
         if (currentState.equals(PlayerStates.SHUFFLE_ON)){
             onMusicSelected(sortRandomSong());
         } else if (currentSong != songList.size() -1) {
             onMusicSelected(currentSong + 1);
         } else {
             onMusicSelected(currentSong);
+            repeatSwitch();
         }
         setMusicPlayerUp();
     }
 
     private int sortRandomSong() {
         while (true){
+            // Gera um numero aleatorio dentro do intervado entre 0 e o tamanho do array de musicas
             int index = (int) Math.floor((Math.random() * (songList.size() - 1) - 0 + 1) + 0);
+
+            // Verifica se a musica não foi tocada desde que o shuffle foi ativado
             if (!playedSongs.contains(index)){
+
+                // Caso já tenha tocado todas as musicas, desativa o shuffle e reinicia o array
                 if (playedSongs.size() == songList.size() - 1){
                  shuffleSwitch();
                  playedSongs.clear();
                 }
+
                 return index;
             }
         }
     }
-    
+
+    // Atualiza o progreesso da barra
     public void updateSeekbar() {
         sbPlayerBar.setMax(mediaPlayer.getDuration());
 
-        timer = new Timer();
+        Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -300,6 +316,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         },0, 1000);
     }
 
+    // Atualiza as informações e botões na tela do player
     private void setMusicPlayerUp() {
         tvSongTitle.setText(songList.get(currentSong).getTitle());
         setMediaCompleteListener();

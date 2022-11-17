@@ -11,9 +11,7 @@
         android:id="@+id/FragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="8"
-        android:name="com.example.cricketorquestra.MusicPlayerFragment"
-        tools:layout="@layout/fragment_song_player" />
+        android:layout_weight="8" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

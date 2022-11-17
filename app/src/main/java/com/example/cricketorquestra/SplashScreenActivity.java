@@ -30,6 +30,8 @@ public class SplashScreenActivity extends AppCompatActivity {
 
         songList = new ArrayList<>();
 
+        // Pede pela permissão de ler os arquivos externos, caso permitido cria um array com eles
+        // e chama a atividade principal
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     REQUEST_CODE);
@@ -45,6 +47,7 @@ public class SplashScreenActivity extends AppCompatActivity {
         }
     }
 
+    // Exibe um dialogo caso o usuario não permita o aceso aos arquivos
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -83,6 +86,7 @@ public class SplashScreenActivity extends AppCompatActivity {
         }
     }
 
+    // Chama a função de scannear os arquivos e adiciona eles ao array
     public void loadSongList() {
         ArrayList<File> fileArray = findFiles(Environment.getExternalStorageDirectory());
 
@@ -98,6 +102,7 @@ public class SplashScreenActivity extends AppCompatActivity {
 
         if (files != null) {
             for (File singleFile : files) {
+                // Caso o arquivo seja um diretorio chama ela propria passando o arquivo
                 if (singleFile.isDirectory() && !singleFile.isHidden()) {
                     fileArray.addAll(findFiles(singleFile));
                 } else if (singleFile.getName().endsWith(".mp3") || singleFile.getName().endsWith(".wav")) {
