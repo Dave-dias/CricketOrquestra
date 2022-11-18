@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -172,14 +171,13 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
             switch (currentState){
                 case REPEAT_OFF:
                 case SHUFFLE_OFF:
-                    mediaPlayer.reset();
+                    clearMediaPlayer();
                     mediaPlayer = MediaPlayer.create(this, songList.get(currentSong).getSourceFolder());
                     ivPausePlay.setImageResource(R.drawable.ic_play_circle);
                     break;
                 case SHUFFLE_ON:
-                    playedSongs.add(currentSong);
                     if (playedSongs.size() == songList.size()){
-                        mediaPlayer.reset();
+                        clearMediaPlayer();
                         mediaPlayer = MediaPlayer.create(this, songList.get(currentSong).getSourceFolder());
                         ivPausePlay.setImageResource(R.drawable.ic_play_circle);
                     } else {
@@ -193,8 +191,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                     nextAudio();
                     break;
                 case REPEAT_ONE_ON:
-                    mediaPlayer.reset();
-                    onMusicSelected(currentSong);
+                    mediaPlayer.setLooping(true);
                     break;
             }
         });
@@ -204,10 +201,16 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     @Override
     public void onMusicSelected(int index) {
         currentSong = index;
-        mediaPlayer.reset();
+        clearMediaPlayer();
         mediaPlayer = MediaPlayer.create(this, songList.get(index).getSourceFolder());
         mediaPlayer.start();
         setMusicPlayerUp();
+    }
+
+    private void clearMediaPlayer(){
+        mediaPlayer.stop();
+        mediaPlayer.release();
+        mediaPlayer = null;
     }
 
     public void playPauseSwitch() {
@@ -269,14 +272,14 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
 
     // Verifica se existe audio posterior, se existe seleciona o audio
     public void nextAudio() {
-        // Caso o shuffle esteja ativado chama um novo audio aleatorio
+        // Caso o shuffle esteja ativado chama um o metodo de sorteio
         if (currentState.equals(PlayerStates.SHUFFLE_ON)){
             onMusicSelected(sortRandomSong());
+            playedSongs.add(currentSong);
         } else if (currentSong != songList.size() -1) {
             onMusicSelected(currentSong + 1);
         } else {
             onMusicSelected(currentSong);
-            repeatSwitch();
         }
         setMusicPlayerUp();
     }
@@ -294,7 +297,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                  shuffleSwitch();
                  playedSongs.clear();
                 }
-
                 return index;
             }
         }
