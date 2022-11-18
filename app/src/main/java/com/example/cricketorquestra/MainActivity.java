@@ -190,9 +190,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 case REPEAT_ON:
                     nextAudio();
                     break;
-                case REPEAT_ONE_ON:
-                    mediaPlayer.setLooping(true);
-                    break;
             }
         });
     }
@@ -235,6 +232,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
             currentState = PlayerStates.SHUFFLE_ON;
             ivShuffle.setImageResource(R.drawable.ic_shuffle_on);
             ivRepeat.setImageResource(R.drawable.ic_repeat);
+            mediaPlayer.setLooping(false);
         }
     }
 
@@ -245,14 +243,17 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
             case REPEAT_ON:
                 currentState = PlayerStates.REPEAT_ONE_ON;
                 ivRepeat.setImageResource(R.drawable.ic_repeat_one_on);
+                mediaPlayer.setLooping(true);
                 break;
             case REPEAT_ONE_ON:
                 currentState = PlayerStates.REPEAT_OFF;
                 ivRepeat.setImageResource(R.drawable.ic_repeat);
+                mediaPlayer.setLooping(false);
                 break;
             default:
                 currentState = PlayerStates.REPEAT_ON;
                 ivRepeat.setImageResource(R.drawable.ic_repeat_on);
+                mediaPlayer.setLooping(false);
                 break;
         }
     }
@@ -275,7 +276,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         // Caso o shuffle esteja ativado chama um o metodo de sorteio
         if (currentState.equals(PlayerStates.SHUFFLE_ON)){
             onMusicSelected(sortRandomSong());
-            playedSongs.add(currentSong);
         } else if (currentSong != songList.size() -1) {
             onMusicSelected(currentSong + 1);
         } else {
@@ -291,12 +291,12 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
 
             // Verifica se a musica não foi tocada desde que o shuffle foi ativado
             if (!playedSongs.contains(index)){
-
                 // Caso já tenha tocado todas as musicas, desativa o shuffle e reinicia o array
                 if (playedSongs.size() == songList.size() - 1){
                  shuffleSwitch();
                  playedSongs.clear();
                 }
+                playedSongs.add(currentSong);
                 return index;
             }
         }
@@ -336,6 +336,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 break;
             case REPEAT_ONE_ON:
                 ivRepeat.setImageResource(R.drawable.ic_repeat_one_on);
+                mediaPlayer.setLooping(true);
                 break;
             case SHUFFLE_ON:
                 ivShuffle.setImageResource(R.drawable.ic_shuffle_on);
