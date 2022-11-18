@@ -35,15 +35,8 @@ public class SplashScreenActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     REQUEST_CODE);
-        }
-
-        loadSongList();
-        if (songList.isEmpty()){
-            Toast.makeText(this, "No audio file was found! Closing the app...", Toast.LENGTH_LONG).show();
-            finish();
         } else {
-            intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
+            startMainActivity();
         }
     }
 
@@ -54,7 +47,6 @@ public class SplashScreenActivity extends AppCompatActivity {
         if (requestCode == REQUEST_CODE){
             if (grantResults[0] == PackageManager.PERMISSION_DENIED){
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-
                 alertDialog.setMessage("The app needs this permission to find your songs," +
                                 " if not granted the app will not function properly!")
                         .setTitle("Permission was denied");
@@ -73,16 +65,22 @@ public class SplashScreenActivity extends AppCompatActivity {
                         finish();
                     }
                 });
-            } else {
-                loadSongList();
-                if (songList.isEmpty()){
-                    Toast.makeText(this, "No audio file was found! Closing the app..." , Toast.LENGTH_LONG).show();
-                    finish();
-                } else {
-                    intent = new Intent(this, MainActivity.class);
-                    startActivity(intent);
-                }
+                alertDialog.show();
+            } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                startMainActivity();
             }
+        }
+    }
+
+    // Inicia a atividade principal pelo intent e procura por aquivos de audio no external storage
+    private void startMainActivity() {
+        loadSongList();
+        if (songList.isEmpty()){
+            Toast.makeText(this, "No audio file was found! Closing the app...", Toast.LENGTH_LONG).show();
+            finish();
+        } else {
+            intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
         }
     }
 

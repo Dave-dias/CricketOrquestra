@@ -291,12 +291,12 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
 
             // Verifica se a musica não foi tocada desde que o shuffle foi ativado
             if (!playedSongs.contains(index)){
+                playedSongs.add(index);
                 // Caso já tenha tocado todas as musicas, desativa o shuffle e reinicia o array
                 if (playedSongs.size() == songList.size() - 1){
                  shuffleSwitch();
                  playedSongs.clear();
                 }
-                playedSongs.add(currentSong);
                 return index;
             }
         }
