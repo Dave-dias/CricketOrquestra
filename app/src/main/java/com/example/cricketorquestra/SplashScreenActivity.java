@@ -1,13 +1,7 @@
 package com.example.cricketorquestra;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
-import android.content.DialogInterface;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -15,9 +9,16 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import java.io.File;
 import java.util.ArrayList;
 
+@SuppressLint("CustomSplashScreen")
 public class SplashScreenActivity extends AppCompatActivity {
     static ArrayList<SongClass> songList;
     final int REQUEST_CODE = 1;
@@ -50,20 +51,13 @@ public class SplashScreenActivity extends AppCompatActivity {
                 alertDialog.setMessage("The app needs this permission to find your songs," +
                                 " if not granted the app will not function properly!")
                         .setTitle("Permission was denied");
-                alertDialog.setPositiveButton("Ok, I'll grant it!", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                alertDialog.setPositiveButton("Ok, I'll grant it!", (dialog, which) ->
                         ActivityCompat.requestPermissions(SplashScreenActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                                REQUEST_CODE);
-                    }
-                });
+                        REQUEST_CODE));
 
-                alertDialog.setNegativeButton("No, I won't grant it!", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(SplashScreenActivity.this, "The app will not function properly!", Toast.LENGTH_LONG).show();
-                        finish();
-                    }
+                alertDialog.setNegativeButton("No, I won't grant it!", (dialog, which) -> {
+                    Toast.makeText(SplashScreenActivity.this, "The app will not function properly!", Toast.LENGTH_LONG).show();
+                    finish();
                 });
                 alertDialog.show();
             } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED){

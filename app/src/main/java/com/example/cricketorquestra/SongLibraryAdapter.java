@@ -4,7 +4,6 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -24,25 +23,18 @@ public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
         private final TextView tvCardName;
-        private final ImageView ivCardCover;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            ivCardCover = (ImageView) itemView.findViewById(R.id.ivCardCover);
             tvCardName = itemView.findViewById(R.id.tvCardName);
 
-            itemView.setOnClickListener(v -> {
-                musicHandler.onMusicSelected(getAdapterPosition());
-            });
+            itemView.setOnClickListener(v -> musicHandler.onMusicSelected(getAdapterPosition()));
         }
 
         public TextView getTvCardName() {
             return tvCardName;
         }
 
-        public ImageView getIvCardCover() {
-            return ivCardCover;
-        }
     }
 
     @NonNull
@@ -54,8 +46,7 @@ public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull SongLibraryAdapter.ViewHolder holder, int position) {
-        holder.getIvCardCover();
-        holder.getTvCardName().setText((songList.get(position).getTitle().toString()));
+        holder.getTvCardName().setText((songList.get(position).getTitle()));
     }
 
     @Override

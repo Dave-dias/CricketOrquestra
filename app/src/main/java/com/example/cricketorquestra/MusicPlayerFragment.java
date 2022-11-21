@@ -21,13 +21,11 @@ public class MusicPlayerFragment extends Fragment{
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.fragment_song_player, container, false);
-        return view;
+        return inflater.inflate(R.layout.fragment_song_player, container, false);
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
     }
-
 }
