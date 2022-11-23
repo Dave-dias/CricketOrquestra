@@ -1,26 +1,22 @@
 package com.example.cricketorquestra;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements MusicHandler {
+public class MainActivity extends AppCompatActivity implements MusicHandler,
+        MediaPlayer.OnCompletionListener {
+
     enum displayedFragment {SONG_LIBRARY, MUSIC_PLAYER}
-
     ImageView ivCover, ivPausePlay, ivSkipNext, ivSkipPrevious, ivShuffle, ivRepeat;
     TextView tvSongTitle, tvNavBarLibrary, tvNavBarPlayer;
     SeekBar sbPlayerBar;
@@ -37,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         setContentView(R.layout.activity_main);
 
         // Setando os fragementos, arrays e criando o media player
@@ -135,33 +131,32 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     }
 
     // Checando o estado do player para saber qual o proximo passo
-    private void setMediaCompleteListener(){
-        mediaPlayer.setOnCompletionListener(mp -> {
-            switch (currentState){
-                case SHUFFLE_OFF:
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+        switch (currentState){
+            case SHUFFLE_OFF:
+                clearMediaPlayer();
+                mediaPlayer = MediaPlayer.create(this,
+                        songList.get(currentSong).getSourceFolder());
+                ivPausePlay.setImageResource(R.drawable.ic_play_circle);
+                break;
+            case SHUFFLE_ON:
+                if (playedSongs.size() == songList.size()){
                     clearMediaPlayer();
                     mediaPlayer = MediaPlayer.create(this,
                             songList.get(currentSong).getSourceFolder());
                     ivPausePlay.setImageResource(R.drawable.ic_play_circle);
-                    break;
-                case SHUFFLE_ON:
-                    if (playedSongs.size() == songList.size()){
-                        clearMediaPlayer();
-                        mediaPlayer = MediaPlayer.create(this,
-                                songList.get(currentSong).getSourceFolder());
-                        ivPausePlay.setImageResource(R.drawable.ic_play_circle);
-                    } else {
-                        int randSong = sortRandomSong();
-                        onMusicSelected(randSong);
-                        currentSong = randSong;
-                    }
-                    setMusicPlayerUp();
-                    break;
-                case REPEAT_ON:
-                    nextAudio();
-                    break;
-            }
-        });
+                } else {
+                    int randSong = sortRandomSong();
+                    onMusicSelected(randSong);
+                    currentSong = randSong;
+                }
+                setMusicPlayerUp();
+                break;
+            case REPEAT_ON:
+                nextAudio();
+                break;
+        }
     }
 
     // Crio e dou start no audio selecionado
@@ -264,23 +259,23 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
 
     // Atualiza o progreesso da barra
     public void updateSeekbar() {
-        Thread timer = new Thread(){
-            @Override
-            public void run() {
-                    int totalProgress = mediaPlayer.getDuration();
-                    int currentProgress = 0;
+        Thread timer = new Thread(() -> {
+                int totalProgress = mediaPlayer.getDuration();
+                int currentProgress = 0;
 
-                    while (currentProgress < totalProgress){
-                        try {
-                            sleep(500);
-                            currentProgress = mediaPlayer.getCurrentPosition();
-                            sbPlayerBar.setProgress(currentProgress);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                while (currentProgress < totalProgress){
+                    try {
+                        if (currentProgress == 0){
+                            Thread.sleep(5000);
                         }
+                        Thread.sleep(500);
+                        currentProgress = mediaPlayer.getCurrentPosition();
+                        sbPlayerBar.setProgress(currentProgress);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-            }
-        };
+                }
+        });
         sbPlayerBar.setMax(mediaPlayer.getDuration());
         timer.start();
     }
@@ -288,7 +283,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     // Atualiza as informações e botões na tela do player
     private void setMusicPlayerUp() {
         tvSongTitle.setText(songList.get(currentSong).getTitle());
-        setMediaCompleteListener();
         updateSeekbar();
 
         if (!mediaPlayer.isPlaying()){
