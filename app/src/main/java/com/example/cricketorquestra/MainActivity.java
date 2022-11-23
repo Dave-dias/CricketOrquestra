@@ -1,5 +1,12 @@
 package com.example.cricketorquestra;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -8,8 +15,10 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 
@@ -41,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler,
         playedSongs = new ArrayList<>();
         mediaPlayer = MediaPlayer.create(this, songList.get(0).getSourceFolder());
         currentState = PlayerStates.REPEAT_ON;
+        setReceiverUp();
 
         fragmentManager = getSupportFragmentManager();
         SongLibraryFragment = new SongLibraryFragment();
@@ -53,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler,
                 .show(MusicPlayerFragment)
                 .commitNow();
     }
+
 
     // Caso tente setar no onCreate, as views não são encontradas
     // pois não foram criadas ainda
@@ -283,6 +294,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler,
     // Atualiza as informações e botões na tela do player
     private void setMusicPlayerUp() {
         tvSongTitle.setText(songList.get(currentSong).getTitle());
+        showNotification();
         updateSeekbar();
 
         if (!mediaPlayer.isPlaying()){
@@ -304,4 +316,68 @@ public class MainActivity extends AppCompatActivity implements MusicHandler,
                 break;
         }
     }
+
+    private void showNotification(){
+        Intent contentIntent = new Intent(this, MainActivity.class);
+        PendingIntent contentPendingIntent = PendingIntent.getActivity(this,
+                0, contentIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        Intent previousIntent = new Intent(this, NotificationReceiver.class)
+                .setAction(SplashScreenActivity.ACTION_PREVIOUS);
+        PendingIntent previousPendingIntent = PendingIntent.getBroadcast(this,
+                0, previousIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        Intent playPauseIntent = new Intent(this, NotificationReceiver.class)
+                .setAction(SplashScreenActivity.ACTION_PLAY_PAUSE);
+        PendingIntent playPausePendingIntent = PendingIntent.getBroadcast(this,
+                0, playPauseIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        Intent nextIntent = new Intent(this, NotificationReceiver.class)
+                .setAction(SplashScreenActivity.ACTION_NEXT);
+        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this,
+                0, nextIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, SplashScreenActivity.CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_music_note)
+                .setContentIntent(contentPendingIntent)
+                .setContentTitle("Playing now...")
+                .setContentText(songList.get(currentSong).getTitle())
+                .setPriority(Notification.PRIORITY_LOW)
+                .addAction(R.drawable.ic_skip_previous, "Previous", previousPendingIntent)
+                .addAction(R.drawable.ic_play_circle, "Play/Pause", playPausePendingIntent)
+                .addAction(R.drawable.ic_skip_next, "Next", nextPendingIntent)
+                .setOnlyAlertOnce(true);
+
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        manager.notify(0, builder.build());
+    }
+
+    private void setReceiverUp(){
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("Play/Pause");
+        filter.addAction("Previous");
+        filter.addAction("Next");
+        registerReceiver(MainActivityReceiver, filter);
+    }
+
+    public BroadcastReceiver MainActivityReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction() != null){
+                switch (intent.getAction()){
+                    case SplashScreenActivity.ACTION_PREVIOUS:
+                        previousAudio();
+                        break;
+
+                    case SplashScreenActivity.ACTION_PLAY_PAUSE:
+                        playPauseSwitch();
+                        break;
+
+                    case SplashScreenActivity.ACTION_NEXT:
+                        nextAudio();
+                        break;
+                }
+            }
+        }
+    };
 }

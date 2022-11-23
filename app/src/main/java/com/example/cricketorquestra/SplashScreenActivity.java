@@ -2,6 +2,9 @@ package com.example.cricketorquestra;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -13,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import java.io.File;
@@ -20,6 +24,10 @@ import java.util.ArrayList;
 
 @SuppressLint("CustomSplashScreen")
 public class SplashScreenActivity extends AppCompatActivity {
+    final static String CHANNEL_ID = "Media_Player";
+    final static String ACTION_PREVIOUS = "Previous";
+    final static String ACTION_PLAY_PAUSE = "Play/Pause";
+    final static String ACTION_NEXT = "Next";
     static ArrayList<SongClass> songList;
     final int REQUEST_CODE = 1;
     Intent intent;
@@ -29,6 +37,7 @@ public class SplashScreenActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
 
+        createNotificationChannel();
         songList = new ArrayList<>();
 
         // Pede pela permissão de ler os arquivos externos, caso permitido cria um array com eles
@@ -103,5 +112,13 @@ public class SplashScreenActivity extends AppCompatActivity {
             }
         }
         return fileArray;
+    }
+
+    private void createNotificationChannel(){
+        NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID,
+                "Media player", NotificationManager.IMPORTANCE_HIGH);
+        notificationChannel.setDescription("Media player notification channel");
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        manager.createNotificationChannel(notificationChannel);
     }
 }
