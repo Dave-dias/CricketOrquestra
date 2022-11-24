@@ -125,6 +125,8 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
             });
 
         mediaPlayer.setOnPreparedListener(mp -> {
+            // Quando o player estiver pronto este listener dá playa na musica
+            // e seta as informações dela
             mp.start();
             setMusicPlayerUp();
         });
@@ -180,6 +182,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         }
     }
 
+    // Reseta o Media player
     private void clearMediaPlayer(){
         mediaPlayer.stop();
         mediaPlayer.reset();
@@ -210,7 +213,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         }
     }
 
-    // Alterna os estados do playe
+    // Alterna os estados do player
     public void repeatSwitch() {
         ivShuffle.setImageResource(R.drawable.ic_shuffle);
         if (currentState == PlayerStates.REPEAT_ON) {
@@ -312,6 +315,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         }
     }
 
+    // Cria notificação, seta ações e dá display nela
     private void showNotification(){
         Intent previousIntent = new Intent(this, NotificationReceiver.class)
                 .setAction(SplashScreenActivity.ACTION_PREVIOUS);
@@ -341,6 +345,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         manager.notify(0, builder.build());
     }
 
+    // Registra o receiver local
     private void setReceiverUp(){
         IntentFilter filter = new IntentFilter();
         filter.addAction("Play/Pause");
@@ -349,6 +354,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         registerReceiver(MainActivityReceiver, filter);
     }
 
+    // Classe que recebe o broadcast do NotificationReceiver
     public BroadcastReceiver MainActivityReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {

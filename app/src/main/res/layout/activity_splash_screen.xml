@@ -8,8 +8,8 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="128dp"
-        android:layout_height="127dp"
+        android:layout_width="188dp"
+        android:layout_height="188dp"
         android:src="@drawable/cricket_logo"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

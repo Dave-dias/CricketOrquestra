@@ -2,12 +2,10 @@ package com.example.cricketorquestra;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.widget.Toast;
@@ -16,7 +14,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import java.io.File;
@@ -114,6 +111,7 @@ public class SplashScreenActivity extends AppCompatActivity {
         return fileArray;
     }
 
+    //Cria o canal de notificação
     private void createNotificationChannel(){
         NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID,
                 "Media player", NotificationManager.IMPORTANCE_HIGH);

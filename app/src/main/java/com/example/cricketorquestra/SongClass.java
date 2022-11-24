@@ -1,7 +1,5 @@
 package com.example.cricketorquestra;
 
-import android.net.Uri;
-
 public class SongClass {
     String Title;
     String sourceFolder;

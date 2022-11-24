@@ -45,14 +45,15 @@
                     android:id="@+id/tvCardName"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_marginRight="5dp"
+                    android:layout_marginEnd="5dp"
                     android:gravity="center"
                     android:maxLines="2"
                     android:minLines="2"
                     android:text="Song title will be displayed here"
                     android:textColor="@color/white"
                     android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    tools:ignore="HardcodedText" />
             </LinearLayout>
 
         </LinearLayout>
