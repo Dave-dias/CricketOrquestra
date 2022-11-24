@@ -22,8 +22,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements MusicHandler,
-        MediaPlayer.OnCompletionListener {
+public class MainActivity extends AppCompatActivity implements MusicHandler {
 
     enum displayedFragment {SONG_LIBRARY, MUSIC_PLAYER}
     ImageView ivCover, ivPausePlay, ivSkipNext, ivSkipPrevious, ivShuffle, ivRepeat;
@@ -48,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler,
         // Setando os fragementos, arrays e criando o media player
         songList = SplashScreenActivity.songList;
         playedSongs = new ArrayList<>();
-        mediaPlayer = MediaPlayer.create(this, songList.get(0).getSourceFolder());
+        mediaPlayer = MediaPlayer.create(this, songList.get(currentSong).getSourceFolder());
         currentState = PlayerStates.REPEAT_ON;
         setReceiverUp();
 
@@ -142,32 +141,36 @@ public class MainActivity extends AppCompatActivity implements MusicHandler,
     }
 
     // Checando o estado do player para saber qual o proximo passo
-    @Override
-    public void onCompletion(MediaPlayer mp) {
-        switch (currentState){
-            case SHUFFLE_OFF:
-                clearMediaPlayer();
-                mediaPlayer = MediaPlayer.create(this,
-                        songList.get(currentSong).getSourceFolder());
-                ivPausePlay.setImageResource(R.drawable.ic_play_circle);
-                break;
-            case SHUFFLE_ON:
-                if (playedSongs.size() == songList.size()){
-                    clearMediaPlayer();
-                    mediaPlayer = MediaPlayer.create(this,
-                            songList.get(currentSong).getSourceFolder());
-                    ivPausePlay.setImageResource(R.drawable.ic_play_circle);
-                } else {
-                    int randSong = sortRandomSong();
-                    onMusicSelected(randSong);
-                    currentSong = randSong;
+    public void setOnCompletionListener() {
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                switch (currentState){
+                    case SHUFFLE_OFF:
+                        clearMediaPlayer();
+                        mediaPlayer = MediaPlayer.create(MainActivity.this,
+                                songList.get(currentSong).getSourceFolder());
+                        ivPausePlay.setImageResource(R.drawable.ic_play_circle);
+                        break;
+                    case SHUFFLE_ON:
+                        if (playedSongs.size() == songList.size()){
+                            clearMediaPlayer();
+                            mediaPlayer = MediaPlayer.create(MainActivity.this,
+                                    songList.get(currentSong).getSourceFolder());
+                            ivPausePlay.setImageResource(R.drawable.ic_play_circle);
+                        } else {
+                            int randSong = sortRandomSong();
+                            onMusicSelected(randSong);
+                            currentSong = randSong;
+                        }
+                        setMusicPlayerUp();
+                        break;
+                    case REPEAT_ON:
+                        nextAudio();
+                        break;
                 }
-                setMusicPlayerUp();
-                break;
-            case REPEAT_ON:
-                nextAudio();
-                break;
-        }
+            }
+        });
     }
 
     // Crio e dou start no audio selecionado
@@ -276,7 +279,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler,
 
                 while (currentProgress < totalProgress){
                     try {
-                        if (currentProgress == 0){
+                        if (currentProgress <= 50){
                             Thread.sleep(5000);
                         }
                         Thread.sleep(500);
@@ -295,6 +298,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler,
     private void setMusicPlayerUp() {
         tvSongTitle.setText(songList.get(currentSong).getTitle());
         showNotification();
+        setOnCompletionListener();
         updateSeekbar();
 
         if (!mediaPlayer.isPlaying()){
@@ -318,10 +322,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler,
     }
 
     private void showNotification(){
-        Intent contentIntent = new Intent(this, MainActivity.class);
-        PendingIntent contentPendingIntent = PendingIntent.getActivity(this,
-                0, contentIntent, PendingIntent.FLAG_IMMUTABLE);
-
         Intent previousIntent = new Intent(this, NotificationReceiver.class)
                 .setAction(SplashScreenActivity.ACTION_PREVIOUS);
         PendingIntent previousPendingIntent = PendingIntent.getBroadcast(this,
@@ -339,10 +339,8 @@ public class MainActivity extends AppCompatActivity implements MusicHandler,
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, SplashScreenActivity.CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_music_note)
-                .setContentIntent(contentPendingIntent)
                 .setContentTitle("Playing now...")
                 .setContentText(songList.get(currentSong).getTitle())
-                .setPriority(Notification.PRIORITY_LOW)
                 .addAction(R.drawable.ic_skip_previous, "Previous", previousPendingIntent)
                 .addAction(R.drawable.ic_play_circle, "Play/Pause", playPausePendingIntent)
                 .addAction(R.drawable.ic_skip_next, "Next", nextPendingIntent)
