@@ -1,6 +1,5 @@
 package com.example.cricketorquestra;
 
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -18,12 +17,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements MusicHandler {
-
     enum displayedFragment {SONG_LIBRARY, MUSIC_PLAYER}
     ImageView ivCover, ivPausePlay, ivSkipNext, ivSkipPrevious, ivShuffle, ivRepeat;
     TextView tvSongTitle, tvNavBarLibrary, tvNavBarPlayer;
@@ -36,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     static ArrayList<SongClass> songList;
     ArrayList<Integer> playedSongs;
     PlayerStates currentState;
-    int currentSong;
+    int currentSong = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         // Setando os fragementos, arrays e criando o media player
         songList = SplashScreenActivity.songList;
         playedSongs = new ArrayList<>();
-        mediaPlayer = MediaPlayer.create(this, songList.get(currentSong).getSourceFolder());
+        mediaPlayer = new MediaPlayer();
         currentState = PlayerStates.REPEAT_ON;
         setReceiverUp();
 
@@ -70,7 +68,12 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     protected void onResume() {
         super.onResume();
         setOnViews();
-        setMusicPlayerUp();
+        try {
+            mediaPlayer.setDataSource(songList.get(currentSong).getSourceFolder());
+            mediaPlayer.prepareAsync();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void setOnViews(){
@@ -120,8 +123,32 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {}
             });
-    }
 
+        mediaPlayer.setOnPreparedListener(mp -> {
+            mp.start();
+            setMusicPlayerUp();
+        });
+
+        mediaPlayer.setOnCompletionListener(mp -> {
+            switch (currentState){
+                case SHUFFLE_ON:
+                    if (playedSongs.size() == songList.size()){
+                        clearMediaPlayer();
+                        onMusicSelected(currentSong);
+                        ivPausePlay.setImageResource(R.drawable.ic_play_circle);
+                    } else {
+                        int randSong = sortRandomSong();
+                        onMusicSelected(randSong);
+                        currentSong = randSong;
+                    }
+                    break;
+                case REPEAT_ON:
+                case SHUFFLE_OFF:
+                    nextAudio();
+                    break;
+            }
+        });
+    }
 
     void fragmentSwitch (displayedFragment display){
         switch (display){
@@ -140,53 +167,22 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         }
     }
 
-    // Checando o estado do player para saber qual o proximo passo
-    public void setOnCompletionListener() {
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                switch (currentState){
-                    case SHUFFLE_OFF:
-                        clearMediaPlayer();
-                        mediaPlayer = MediaPlayer.create(MainActivity.this,
-                                songList.get(currentSong).getSourceFolder());
-                        ivPausePlay.setImageResource(R.drawable.ic_play_circle);
-                        break;
-                    case SHUFFLE_ON:
-                        if (playedSongs.size() == songList.size()){
-                            clearMediaPlayer();
-                            mediaPlayer = MediaPlayer.create(MainActivity.this,
-                                    songList.get(currentSong).getSourceFolder());
-                            ivPausePlay.setImageResource(R.drawable.ic_play_circle);
-                        } else {
-                            int randSong = sortRandomSong();
-                            onMusicSelected(randSong);
-                            currentSong = randSong;
-                        }
-                        setMusicPlayerUp();
-                        break;
-                    case REPEAT_ON:
-                        nextAudio();
-                        break;
-                }
-            }
-        });
-    }
-
-    // Crio e dou start no audio selecionado
+    // Reseta o media player e dá start na musica selecionada
     @Override
     public void onMusicSelected(int index) {
         currentSong = index;
         clearMediaPlayer();
-        mediaPlayer = MediaPlayer.create(this, songList.get(index).getSourceFolder());
-        mediaPlayer.start();
-        setMusicPlayerUp();
+        try {
+            mediaPlayer.setDataSource(songList.get(index).getSourceFolder());
+            mediaPlayer.prepareAsync();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void clearMediaPlayer(){
         mediaPlayer.stop();
-        mediaPlayer.release();
-        mediaPlayer = null;
+        mediaPlayer.reset();
     }
 
     public void playPauseSwitch() {
@@ -238,7 +234,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         } else {
             onMusicSelected(currentSong);
         }
-        setMusicPlayerUp();
     }
 
     // Verifica se existe audio posterior, se existe seleciona o audio
@@ -251,7 +246,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         } else {
             onMusicSelected(0);
         }
-        setMusicPlayerUp();
     }
 
     private int sortRandomSong() {
@@ -279,9 +273,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
 
                 while (currentProgress < totalProgress){
                     try {
-                        if (currentProgress <= 50){
-                            Thread.sleep(5000);
-                        }
                         Thread.sleep(500);
                         currentProgress = mediaPlayer.getCurrentPosition();
                         sbPlayerBar.setProgress(currentProgress);
@@ -296,10 +287,10 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
 
     // Atualiza as informações e botões na tela do player
     private void setMusicPlayerUp() {
-        tvSongTitle.setText(songList.get(currentSong).getTitle());
         showNotification();
-        setOnCompletionListener();
         updateSeekbar();
+
+        tvSongTitle.setText(songList.get(currentSong).getTitle());
 
         if (!mediaPlayer.isPlaying()){
             ivPausePlay.setImageResource(R.drawable.ic_play_circle);

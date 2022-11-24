@@ -93,7 +93,7 @@ public class SplashScreenActivity extends AppCompatActivity {
 
         for (File singleFile : fileArray) {
             songList.add(new SongClass(singleFile.getName().replace(".mp3", "").replace(".wav", "")
-                    , Uri.parse(singleFile.getPath())));
+                    , singleFile.getPath()));
         }
     }
 

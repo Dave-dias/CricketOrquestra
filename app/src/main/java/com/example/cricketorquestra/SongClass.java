@@ -4,9 +4,9 @@ import android.net.Uri;
 
 public class SongClass {
     String Title;
-    Uri sourceFolder;
+    String sourceFolder;
 
-    public SongClass(String title, Uri sourceFolder) {
+    public SongClass(String title, String sourceFolder) {
         Title = title;
         this.sourceFolder = sourceFolder;
     }
@@ -15,7 +15,7 @@ public class SongClass {
         return Title;
     }
 
-    public Uri getSourceFolder() {
+    public String getSourceFolder() {
         return sourceFolder;
     }
 }
