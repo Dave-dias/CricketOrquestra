@@ -76,6 +76,37 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         }
     }
 
+    // Classe que recebe o broadcast do NotificationReceiver
+    public BroadcastReceiver MainActivityReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction() != null){
+                switch (intent.getAction()){
+                    case SplashScreenActivity.ACTION_PREVIOUS:
+                        previousAudio();
+                        break;
+
+                    case SplashScreenActivity.ACTION_PLAY_PAUSE:
+                        playPauseSwitch();
+                        break;
+
+                    case SplashScreenActivity.ACTION_NEXT:
+                        nextAudio();
+                        break;
+                }
+            }
+        }
+    };
+
+    // Registra o receiver local
+    private void setReceiverUp(){
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("Play/Pause");
+        filter.addAction("Previous");
+        filter.addAction("Next");
+        registerReceiver(MainActivityReceiver, filter);
+    }
+
     private void setOnViews(){
         tvNavBarLibrary = findViewById(R.id.tvNavLibrary);
         tvNavBarPlayer = findViewById(R.id.tvNavPlayer);
@@ -106,26 +137,8 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
 
         ivRepeat.setOnClickListener(v -> repeatSwitch());
 
-        sbPlayerBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (mediaPlayer != null){
-                    if (fromUser){
-                        mediaPlayer.seekTo(progress);
-                    }
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-            });
-
         mediaPlayer.setOnPreparedListener(mp -> {
-            // Quando o player estiver pronto este listener dá playa na musica
+            // Quando o player estiver pronto este listener dá play no audio
             // e seta as informações dela
             mp.start();
             setMusicPlayerUp();
@@ -150,6 +163,24 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                     break;
             }
         });
+
+        sbPlayerBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (mediaPlayer != null){
+                    if (fromUser){
+                        mediaPlayer.seekTo(progress);
+                    }
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
     }
 
     void fragmentSwitch (displayedFragment display){
@@ -167,6 +198,39 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                         .commitNow();
                 break;
         }
+    }
+
+    // Cria notificação, seta ações e dá display nela
+    private void showNotification(){
+        Intent previousIntent = new Intent(this, NotificationReceiver.class)
+                .setAction(SplashScreenActivity.ACTION_PREVIOUS);
+        PendingIntent previousPendingIntent = PendingIntent.getBroadcast(this,
+                0, previousIntent, PendingIntent.FLAG_UPDATE_CURRENT |
+                        PendingIntent.FLAG_IMMUTABLE);
+
+        Intent playPauseIntent = new Intent(this, NotificationReceiver.class)
+                .setAction(SplashScreenActivity.ACTION_PLAY_PAUSE);
+        PendingIntent playPausePendingIntent = PendingIntent.getBroadcast(this,
+                0, playPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT |
+                        PendingIntent.FLAG_IMMUTABLE);
+
+        Intent nextIntent = new Intent(this, NotificationReceiver.class)
+                .setAction(SplashScreenActivity.ACTION_NEXT);
+        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this,
+                0, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT |
+                        PendingIntent.FLAG_IMMUTABLE);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, SplashScreenActivity.CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_music_note)
+                .setContentTitle("Playing now...")
+                .setContentText(songList.get(currentSong).getTitle())
+                .addAction(R.drawable.ic_skip_previous, "Previous", previousPendingIntent)
+                .addAction(R.drawable.ic_play_circle, "Play/Pause", playPausePendingIntent)
+                .addAction(R.drawable.ic_skip_next, "Next", nextPendingIntent)
+                .setOnlyAlertOnce(true);
+
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        manager.notify(0, builder.build());
     }
 
     // Reseta o media player e dá start na musica selecionada
@@ -314,65 +378,4 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 break;
         }
     }
-
-    // Cria notificação, seta ações e dá display nela
-    private void showNotification(){
-        Intent previousIntent = new Intent(this, NotificationReceiver.class)
-                .setAction(SplashScreenActivity.ACTION_PREVIOUS);
-        PendingIntent previousPendingIntent = PendingIntent.getBroadcast(this,
-                0, previousIntent, PendingIntent.FLAG_IMMUTABLE);
-
-        Intent playPauseIntent = new Intent(this, NotificationReceiver.class)
-                .setAction(SplashScreenActivity.ACTION_PLAY_PAUSE);
-        PendingIntent playPausePendingIntent = PendingIntent.getBroadcast(this,
-                0, playPauseIntent, PendingIntent.FLAG_IMMUTABLE);
-
-        Intent nextIntent = new Intent(this, NotificationReceiver.class)
-                .setAction(SplashScreenActivity.ACTION_NEXT);
-        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this,
-                0, nextIntent, PendingIntent.FLAG_IMMUTABLE);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, SplashScreenActivity.CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_music_note)
-                .setContentTitle("Playing now...")
-                .setContentText(songList.get(currentSong).getTitle())
-                .addAction(R.drawable.ic_skip_previous, "Previous", previousPendingIntent)
-                .addAction(R.drawable.ic_play_circle, "Play/Pause", playPausePendingIntent)
-                .addAction(R.drawable.ic_skip_next, "Next", nextPendingIntent)
-                .setOnlyAlertOnce(true);
-
-        NotificationManager manager = getSystemService(NotificationManager.class);
-        manager.notify(0, builder.build());
-    }
-
-    // Registra o receiver local
-    private void setReceiverUp(){
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("Play/Pause");
-        filter.addAction("Previous");
-        filter.addAction("Next");
-        registerReceiver(MainActivityReceiver, filter);
-    }
-
-    // Classe que recebe o broadcast do NotificationReceiver
-    public BroadcastReceiver MainActivityReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction() != null){
-                switch (intent.getAction()){
-                    case SplashScreenActivity.ACTION_PREVIOUS:
-                        previousAudio();
-                        break;
-
-                    case SplashScreenActivity.ACTION_PLAY_PAUSE:
-                        playPauseSwitch();
-                        break;
-
-                    case SplashScreenActivity.ACTION_NEXT:
-                        nextAudio();
-                        break;
-                }
-            }
-        }
-    };
 }
