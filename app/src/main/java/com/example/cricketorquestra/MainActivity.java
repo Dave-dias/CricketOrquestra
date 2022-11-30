@@ -77,6 +77,13 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         setOnViews();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        manager.cancel(0);
+    }
+
     // Classe que recebe o broadcast do NotificationReceiver
     public BroadcastReceiver MainActivityReceiver = new BroadcastReceiver() {
         @Override
