@@ -49,6 +49,13 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         currentState = PlayerStates.REPEAT_ON;
         setReceiverUp();
 
+        try {
+            mediaPlayer.setDataSource(songList.get(currentSong).getSourceFolder());
+            mediaPlayer.prepareAsync();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         fragmentManager = getSupportFragmentManager();
         SongLibraryFragment = new SongLibraryFragment();
         MusicPlayerFragment = new MusicPlayerFragment();
@@ -68,12 +75,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     protected void onResume() {
         super.onResume();
         setOnViews();
-        try {
-            mediaPlayer.setDataSource(songList.get(currentSong).getSourceFolder());
-            mediaPlayer.prepareAsync();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     // Classe que recebe o broadcast do NotificationReceiver
