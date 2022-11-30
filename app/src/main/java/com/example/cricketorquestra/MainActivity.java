@@ -68,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 .commitNow();
     }
 
-
     // Caso tente setar no onCreate, as views não são encontradas
     // pois não foram criadas ainda
     @Override
