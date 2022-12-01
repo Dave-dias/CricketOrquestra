@@ -54,6 +54,13 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         setContentView(R.layout.activity_main);
 
+        // Costumizando a actionbar
+        if (getSupportActionBar() != null){
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setLogo(R.mipmap.ic_launcher_foreground);
+            getSupportActionBar().setDisplayUseLogoEnabled(true);
+        }
+
         // Setando os fragementos, arrays e criando o media player
         songList = SplashScreenActivity.songList;
         playedSongs = new ArrayList<>();
