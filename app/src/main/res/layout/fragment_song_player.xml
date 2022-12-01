@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
+    android:background="?attr/colorPrimary"
     android:orientation="vertical"
     tools:context=".MusicPlayerFragment">
 
@@ -19,7 +19,7 @@
         android:layout_weight="1"
         android:gravity="center_horizontal|center_vertical"
         android:text="Playing now..."
-        android:textColor="@color/white"
+        android:textColor="?attr/colorOnPrimary"
         android:textSize="24sp"
         tools:ignore="HardcodedText" />
 
@@ -46,7 +46,7 @@
         android:maxLines="2"
         android:minLines="1"
         android:text="Song title will be displayed here"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorOnPrimary"
         android:textSize="24sp"
         android:textStyle="bold"
         tools:ignore="HardcodedText" />
@@ -59,8 +59,8 @@
         android:layout_marginRight="20dp"
         android:layout_weight="1"
         android:progressBackgroundTint="@color/white"
-        android:progressTint="@color/teal_200"
-        android:thumbTint="@color/teal_200" />
+        android:progressTint="?attr/colorSecondaryVariant"
+        android:thumbTint="?attr/colorSecondaryVariant" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

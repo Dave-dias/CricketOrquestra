@@ -13,7 +13,7 @@
         android:layout_marginRight="5dp"
         android:layout_marginBottom="5dp"
         android:layout_weight="1"
-        app:cardBackgroundColor="@color/dark_gray"
+        app:cardBackgroundColor="?attr/colorPrimaryVariant"
         app:cardCornerRadius="10dp"
         app:cardElevation="8dp"
         app:cardUseCompatPadding="false">
@@ -33,7 +33,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="2"
                 app:srcCompat="@drawable/ic_audio_file"
-                tools:ignore="ContentDescription" />
+                tools:ignore="ContentDescription,ImageContrastCheck,ImageContrastCheck" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -50,7 +50,7 @@
                     android:maxLines="2"
                     android:minLines="2"
                     android:text="Song title will be displayed here"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorSecondaryVariant"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     tools:ignore="HardcodedText" />

@@ -9,10 +9,14 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
@@ -78,9 +82,22 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-        NotificationManager manager = getSystemService(NotificationManager.class);
+        NotificationManager manager = this.getSystemService(NotificationManager.class);
         manager.cancel(0);
+        super.onDestroy();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.app_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        startActivity(new Intent(this, SettingsActivity.class));
+        return super.onOptionsItemSelected(item);
     }
 
     // Classe que recebe o broadcast do NotificationReceiver
@@ -209,6 +226,12 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
 
     // Cria notificação, seta ações e dá display nela
     private void showNotification(){
+        Intent contentIntent = new Intent(this, MainActivity.class)
+                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent contentPendingIntent = PendingIntent.getBroadcast(this,
+                0, contentIntent, PendingIntent.FLAG_UPDATE_CURRENT |
+                        PendingIntent.FLAG_IMMUTABLE);
+
         Intent previousIntent = new Intent(this, NotificationReceiver.class)
                 .setAction(SplashScreenActivity.ACTION_PREVIOUS);
         PendingIntent previousPendingIntent = PendingIntent.getBroadcast(this,
