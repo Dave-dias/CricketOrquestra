@@ -230,8 +230,8 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     // Cria notificação, seta ações e dá display nela
     private void showNotification(){
         Intent contentIntent = new Intent(this, MainActivity.class)
-                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent contentPendingIntent = PendingIntent.getBroadcast(this,
+                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent contentPendingIntent = PendingIntent.getActivity(this,
                 0, contentIntent, PendingIntent.FLAG_UPDATE_CURRENT |
                         PendingIntent.FLAG_IMMUTABLE);
 
@@ -257,6 +257,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 .setSmallIcon(R.drawable.ic_music_note)
                 .setContentTitle("Playing now...")
                 .setContentText(songList.get(currentSong).getTitle())
+                .setContentIntent(contentPendingIntent)
                 .addAction(R.drawable.ic_skip_previous, "Previous", previousPendingIntent)
                 .addAction(R.drawable.ic_play_circle, "Play/Pause", playPausePendingIntent)
                 .addAction(R.drawable.ic_skip_next, "Next", nextPendingIntent)
