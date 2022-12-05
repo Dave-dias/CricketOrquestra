@@ -25,7 +25,6 @@ public class SplashScreenActivity extends AppCompatActivity {
     final static String ACTION_PREVIOUS = "Previous";
     final static String ACTION_PLAY_PAUSE = "Play/Pause";
     final static String ACTION_NEXT = "Next";
-    static ArrayList<SongClass> songList;
     final int REQUEST_CODE = 1;
     Intent intent;
 
@@ -35,7 +34,6 @@ public class SplashScreenActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash_screen);
 
         createNotificationChannel();
-        songList = new ArrayList<>();
 
         // Pede pela permissão de ler os arquivos externos, caso permitido cria um array com eles
         // e chama a atividade principal
@@ -74,41 +72,8 @@ public class SplashScreenActivity extends AppCompatActivity {
 
     // Inicia a atividade principal pelo intent e procura por aquivos de audio no external storage
     private void startMainActivity() {
-        loadSongList();
-        if (songList.isEmpty()){
-            Toast.makeText(this, "No audio file was found! Closing the app...", Toast.LENGTH_LONG).show();
-            finish();
-        } else {
-            intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-        }
-    }
-
-    // Chama a função de scannear os arquivos e adiciona eles ao array
-    public void loadSongList() {
-        ArrayList<File> fileArray = findFiles(Environment.getExternalStorageDirectory());
-
-        for (File singleFile : fileArray) {
-            songList.add(new SongClass(singleFile.getName().replace(".mp3", "").replace(".wav", "")
-                    , singleFile.getPath()));
-        }
-    }
-
-    public ArrayList<File> findFiles(File fileToScan) {
-        ArrayList<File> fileArray = new ArrayList<>();
-        File[] files = fileToScan.listFiles();
-
-        if (files != null) {
-            for (File singleFile : files) {
-                // Caso o arquivo seja um diretorio chama ela propria passando o arquivo
-                if (singleFile.isDirectory() && !singleFile.isHidden()) {
-                    fileArray.addAll(findFiles(singleFile));
-                } else if (singleFile.getName().endsWith(".mp3") || singleFile.getName().endsWith(".wav")) {
-                    fileArray.add(singleFile);
-                }
-            }
-        }
-        return fileArray;
+        intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
 
     //Cria o canal de notificação

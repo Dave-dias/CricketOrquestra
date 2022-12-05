@@ -17,7 +17,9 @@
         app:cardBackgroundColor="?attr/colorPrimary"
         app:cardCornerRadius="10dp"
         app:cardElevation="8dp"
-        app:cardUseCompatPadding="false">
+        app:cardUseCompatPadding="false"
+        android:outlineAmbientShadowColor="?attr/colorPrimaryVariant"
+        android:outlineSpotShadowColor="?attr/colorPrimaryVariant">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -51,11 +53,11 @@
                     android:id="@+id/tvCardName"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
                     android:gravity="center"
                     android:maxLines="2"
                     android:minLines="2"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
                     android:text="Song title will be displayed here"
                     android:textColor="?attr/colorSecondaryVariant"
                     android:textSize="20sp"

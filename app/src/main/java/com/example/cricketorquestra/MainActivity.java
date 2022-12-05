@@ -7,38 +7,38 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
-import android.graphics.Canvas;
-import android.graphics.ColorFilter;
-import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.preference.Preference;
-import androidx.preference.PreferenceManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements MusicHandler {
     enum displayedFragment {SONG_LIBRARY, MUSIC_PLAYER}
     ImageView ivCover, ivPausePlay, ivSkipNext, ivSkipPrevious, ivShuffle, ivRepeat;
     TextView tvSongTitle, tvNavBarLibrary, tvNavBarPlayer;
+    ProgressBar pbSongList;
     SeekBar sbPlayerBar;
 
-    Fragment MusicPlayerFragment, SongLibraryFragment;
+    Fragment MusicPlayerFrag, SongLibraryFrag;
     FragmentManager fragmentManager;
     MediaPlayer mediaPlayer;
 
@@ -62,28 +62,21 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         }
 
         // Setando os fragementos, arrays e criando o media player
-        songList = SplashScreenActivity.songList;
+        currentState = PlayerStates.REPEAT_ON;
         playedSongs = new ArrayList<>();
         mediaPlayer = new MediaPlayer();
-        currentState = PlayerStates.REPEAT_ON;
         setReceiverUp();
-
-        try {
-            mediaPlayer.setDataSource(songList.get(currentSong).getSourceFolder());
-            mediaPlayer.prepareAsync();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        loadSongList();
 
         fragmentManager = getSupportFragmentManager();
-        SongLibraryFragment = new SongLibraryFragment();
-        MusicPlayerFragment = new MusicPlayerFragment();
+        SongLibraryFrag = new SongLibraryFragment();
+        MusicPlayerFrag = new MusicPlayerFragment();
 
         fragmentManager.beginTransaction()
-                .add(R.id.FragmentContainer, SongLibraryFragment)
-                .add(R.id.FragmentContainer, MusicPlayerFragment)
-                .hide(SongLibraryFragment)
-                .show(MusicPlayerFragment)
+                .add(R.id.FragmentContainer, SongLibraryFrag)
+                .add(R.id.FragmentContainer, MusicPlayerFrag)
+                .hide(SongLibraryFrag)
+                .show(MusicPlayerFrag)
                 .commitNow();
     }
 
@@ -144,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         ivRepeat = findViewById(R.id.ivRepeat);
         tvSongTitle = findViewById(R.id.tvSongTitle);
         sbPlayerBar = findViewById(R.id.sbPlayerBar);
+        pbSongList = findViewById(R.id.pbSongList);
 
         setOnListeners();
     }
@@ -213,14 +207,14 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         switch (display){
             case SONG_LIBRARY:
                 fragmentManager.beginTransaction()
-                        .show(SongLibraryFragment)
-                        .hide(MusicPlayerFragment)
+                        .show(SongLibraryFrag)
+                        .hide(MusicPlayerFrag)
                         .commitNow();
                 break;
             case MUSIC_PLAYER:
                 fragmentManager.beginTransaction()
-                        .show(MusicPlayerFragment)
-                        .hide(SongLibraryFragment)
+                        .show(MusicPlayerFrag)
+                        .hide(SongLibraryFrag)
                         .commitNow();
                 break;
         }
@@ -306,8 +300,8 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
             currentState = PlayerStates.SHUFFLE_ON;
             ivShuffle.setImageResource(R.drawable.ic_shuffle_on);
             ivRepeat.setImageResource(R.drawable.ic_repeat);
-            mediaPlayer.setLooping(false);
         }
+        mediaPlayer.setLooping(false);
     }
 
     // Alterna os estados do player
@@ -404,11 +398,54 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 break;
             case REPEAT_ONE_ON:
                 ivRepeat.setImageResource(R.drawable.ic_repeat_one_on);
-                mediaPlayer.setLooping(true);
                 break;
             case SHUFFLE_ON:
                 ivShuffle.setImageResource(R.drawable.ic_shuffle_on);
                 break;
         }
+    }
+
+    // Chama a função de scannear os arquivos e adiciona eles ao array
+    public void loadSongList() {
+        Executor backgroundThread = Executors.newSingleThreadExecutor();
+        Handler postExecute = new Handler(Looper.getMainLooper());
+        songList = new ArrayList<>();
+
+        backgroundThread.execute(() -> {
+            ArrayList<File> fileArray = findFiles(Environment.getExternalStorageDirectory());
+
+            for (File singleFile : fileArray) {
+                songList.add(new SongClass(singleFile.getName().replace(".mp3", "").replace(".wav", "")
+                        , singleFile.getPath()));
+            }
+
+            postExecute.post(() -> {
+                pbSongList.setVisibility(View.INVISIBLE);
+                if (songList.size() != 0) {
+                    onMusicSelected(0);
+                    SongLibraryFragment.refreshRecycleview(songList);
+                } else {
+                    Toast.makeText(MainActivity.this, "No audio file was found", Toast.LENGTH_LONG).show();
+                    finish();
+                }
+            });
+        });
+    }
+
+    public ArrayList<File> findFiles(File fileToScan) {
+        ArrayList<File> fileArray = new ArrayList<>();
+        File[] files = fileToScan.listFiles();
+
+        if (files != null) {
+            for (File singleFile : files) {
+                // Caso o arquivo seja um diretorio chama ela propria passando o arquivo
+                if (singleFile.isDirectory() && !singleFile.isHidden()) {
+                    fileArray.addAll(findFiles(singleFile));
+                } else if (singleFile.getName().endsWith(".mp3") || singleFile.getName().endsWith(".wav")) {
+                    fileArray.add(singleFile);
+                }
+            }
+        }
+        return fileArray;
     }
 }
