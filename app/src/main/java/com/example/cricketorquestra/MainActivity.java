@@ -102,7 +102,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         super.onDestroy();
     }
 
-
     // Classe que recebe o broadcast do NotificationReceiver
     public BroadcastReceiver MainActivityReceiver = new BroadcastReceiver() {
         @Override
