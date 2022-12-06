@@ -6,7 +6,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
@@ -19,6 +20,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.NotificationCompat;
@@ -43,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     MediaPlayer mediaPlayer;
 
     static ArrayList<SongClass> songList;
+    Drawable drwPlayer, drwLibrary;
     ArrayList<Integer> playedSongs;
     PlayerStates currentState;
     int currentSong = 0;
@@ -50,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         setContentView(R.layout.activity_main);
 
@@ -86,6 +88,10 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     protected void onResume() {
         super.onResume();
         setOnViews();
+        drwLibrary = tvNavBarLibrary.getCompoundDrawablesRelative()[3];
+        drwPlayer = tvNavBarPlayer.getCompoundDrawablesRelative()[3];
+        drwLibrary.setBounds(tvNavBarLibrary.getCompoundDrawablesRelative()[3].getBounds());
+        drwPlayer.setBounds(tvNavBarPlayer.getCompoundDrawablesRelative()[3].getBounds());
     }
 
     @Override
@@ -93,6 +99,32 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         NotificationManager manager = this.getSystemService(NotificationManager.class);
         manager.cancel(0);
         super.onDestroy();
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        if (getSupportActionBar() != null){
+            if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
+                tvNavBarPlayer.setCompoundDrawables(null, null, null, null);
+                tvNavBarLibrary.setCompoundDrawables(null, null, null, null);
+                ivCover.setVisibility(View.GONE);
+                getSupportActionBar().hide();
+            } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+                tvNavBarPlayer.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                        null, null, null, drwPlayer);
+                tvNavBarLibrary.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                        null, null, null, drwLibrary);
+                ivCover.setVisibility(View.VISIBLE);
+                getSupportActionBar().show();
+            }
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        fragmentSwitch(displayedFragment.MUSIC_PLAYER);
     }
 
     // Classe que recebe o broadcast do NotificationReceiver
@@ -422,6 +454,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
             postExecute.post(() -> {
                 pbSongList.setVisibility(View.INVISIBLE);
                 if (songList.size() != 0) {
+                    //Seleciona a primeira musica da lista e atualiza o recycleview
                     onMusicSelected(0);
                     SongLibraryFragment.refreshRecycleview(songList);
                 } else {

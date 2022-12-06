@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/container"
+    android:id="@+id/mainContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -14,6 +14,7 @@
         android:layout_weight="8" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/navMenu"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -29,7 +30,7 @@
             android:layout_marginBottom="8dp"
             android:backgroundTint="@color/white"
             android:clickable="true"
-            android:gravity="center_horizontal"
+            android:gravity="center"
             android:minHeight="48dp"
             android:text="Player"
             android:textColor="?attr/colorSecondaryVariant"
@@ -51,7 +52,7 @@
             android:layout_marginBottom="8dp"
             android:backgroundTint="@color/white"
             android:clickable="true"
-            android:gravity="center_horizontal"
+            android:gravity="center"
             android:minHeight="48dp"
             android:text="Library"
             android:textColor="?attr/colorSecondaryVariant"

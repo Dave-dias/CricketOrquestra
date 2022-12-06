@@ -30,7 +30,7 @@
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:layout_marginBottom="20dp"
-        android:layout_weight="3"
+        android:layout_weight="2"
         android:src="@drawable/ic_music_note"
         tools:ignore="ContentDescription" />
 
@@ -69,7 +69,7 @@
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:layout_marginBottom="20dp"
-        android:layout_weight="2"
+        android:layout_weight="1"
         android:orientation="horizontal">
 
         <ImageView
