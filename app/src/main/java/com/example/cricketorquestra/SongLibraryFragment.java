@@ -43,6 +43,7 @@ public class SongLibraryFragment extends Fragment {
 
     public static void refreshRecycleview (ArrayList<SongClass> songList){
         myAdapter.songList = songList;
+        MainActivity.songList = songList;
         myAdapter.notifyDataSetChanged();
     }
 }

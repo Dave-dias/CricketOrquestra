@@ -26,15 +26,14 @@ public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvCardName = itemView.findViewById(R.id.tvCardName);
+            tvCardName = itemView.findViewById(R.id.tvPlayingTitle);
 
-            itemView.setOnClickListener(v -> musicHandler.onMusicSelected(getAdapterPosition()));
+            itemView.setOnClickListener(v -> musicHandler.onSelectedMusicLibrary(getAdapterPosition()));
         }
 
         public TextView getTvCardName() {
             return tvCardName;
         }
-
     }
 
     @NonNull
