@@ -52,9 +52,9 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     static ArrayList<SongClass> songList;
     static ArrayList<SongClass> queueList;
     static ArrayList<SongClass> sortedList;
+    static int currentSong = 0;
     Drawable drwPlayer, drwLibrary;
     PlayerStates currentState;
-    int currentSong = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -236,6 +236,9 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     void fragmentSwitch(displayedFragment display) {
         switch (display) {
             case SONG_LIBRARY:
+                if (getSupportActionBar() != null){
+                    getSupportActionBar().show();
+                }
                 fragmentManager.beginTransaction()
                         .show(SongLibraryFrag)
                         .hide(MusicPlayerFrag)
@@ -243,6 +246,9 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                         .commitNow();
                 break;
             case MUSIC_PLAYER:
+                if (getSupportActionBar() != null){
+                    getSupportActionBar().show();
+                }
                 fragmentManager.beginTransaction()
                         .show(MusicPlayerFrag)
                         .hide(SongLibraryFrag)
@@ -251,6 +257,9 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 break;
 
             case QUEUE_LIST:
+                if (getSupportActionBar() != null){
+                    getSupportActionBar().hide();
+                }
                 fragmentManager.beginTransaction()
                         .show(QueueFrag)
                         .hide(MusicPlayerFrag)

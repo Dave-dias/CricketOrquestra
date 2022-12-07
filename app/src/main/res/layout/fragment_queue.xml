@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     android:background="?attr/colorOnPrimary"
     android:orientation="horizontal"
-    tools:context=".QueueFragment">
+    tools:context=".QueueFragment"
+    style="s">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbarQueue"
@@ -20,7 +21,8 @@
             android:layout_height="wrap_content"
             app:contentInsetStartWithNavigation="0dp"
             app:navigationIcon="@drawable/ic_audio_file"
-            app:title="Song title will be displayed here" />
+            app:title="Song title will be displayed here"
+            app:titleTextColor="?attr/colorPrimary"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 

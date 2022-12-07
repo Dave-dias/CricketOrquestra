@@ -87,7 +87,11 @@ public class QueueFragment extends Fragment {
 
         @Override
         public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-            adapter.onSwipe(viewHolder.getAdapterPosition());
+            if (viewHolder.getAdapterPosition() != MainActivity.currentSong){
+                adapter.onSwipe(viewHolder.getAdapterPosition());
+            } else {
+                refreshQueueList(MainActivity.queueList);
+            }
         }
     }
 }
