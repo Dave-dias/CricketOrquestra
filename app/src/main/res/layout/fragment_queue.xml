@@ -13,17 +13,19 @@
         android:id="@+id/appbarQueue"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/dark_blue">
+        android:backgroundTint="?attr/color">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/topToolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:contentInsetStartWithNavigation="0dp"
-            app:navigationIcon="@drawable/ic_audio_file"
-            app:title="Song title will be displayed here"
-            app:titleTextColor="?attr/colorPrimary"/>
-
+            app:navigationIcon="@drawable/ic_play_arrow"
+            app:navigationIconTint="@color/white"
+            app:title="Playing now..."
+            app:titleTextColor="@color/white"
+            app:subtitle="Song title will be displayed here"
+            app:subtitleTextColor="@color/white"/>
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView

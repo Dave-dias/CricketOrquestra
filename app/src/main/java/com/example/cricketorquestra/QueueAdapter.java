@@ -60,6 +60,10 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.ViewHolder> 
         Collections.swap(queueList, oldPosition, newPosition);
         notifyItemMoved(oldPosition, newPosition);
         MainActivity.queueList = queueList;
+
+        if (MainActivity.currentSong == oldPosition){
+            MainActivity.currentSong = newPosition;
+        }
     }
 
     @Override

@@ -312,8 +312,10 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     // Reseta o media player e dá start na musica selecionada
     @Override
     public void onSelectedMusicLibrary(int index) {
+        currentState = PlayerStates.REPEAT_ONE_ON;
         currentSong = index;
         clearMediaPlayer();
+        repeatSwitch();
         try {
             mediaPlayer.setDataSource(songList.get(index).getSourceFolder());
             mediaPlayer.prepareAsync();
@@ -453,7 +455,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         showNotification();
         updateSeekbar();
 
-        topToolbar.setTitle(queueList.get(currentSong).getTitle());
+        topToolbar.setSubtitle(queueList.get(currentSong).getTitle());
         tvSongTitle.setText(queueList.get(currentSong).getTitle());
 
         if (!mediaPlayer.isPlaying()) {
@@ -494,7 +496,8 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 if (songList.size() != 0) {
                     //Seleciona a primeira musica da lista e atualiza o recycleview
                     SongLibraryFragment.refreshRecycleview(songList);
-                    onSelectedMusicLibrary(0);
+                    resetQueue();
+                    onSelectedQueue(0);
                     sortQueue();
                 } else {
                     Toast.makeText(MainActivity.this, "No audio file was found", Toast.LENGTH_LONG).show();
