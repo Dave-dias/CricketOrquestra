@@ -81,6 +81,12 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
     protected void onResume() {
         super.onResume();
         setOnViews();
+
+        libraryHandler.refreshLibrary();
+        queueHandler.refreshQueue(Application.songList);
+        queueHandler.sortQueue();
+        onSelectedMusicLibrary(0);
+
         drwLibrary = tvNavBarLibrary.getCompoundDrawablesRelative()[3];
         drwPlayer = tvNavBarPlayer.getCompoundDrawablesRelative()[3];
         drwLibrary.setBounds(tvNavBarLibrary.getCompoundDrawablesRelative()[3].getBounds());
@@ -161,14 +167,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
                         case NotificationManagement.ACTION_NEXT:
                             onNextAudioSelected();
                             break;
-
-                        case NotificationManagement.FILE_DISCOVERED:
-                            libraryHandler.refreshLibrary();
-                            queueHandler.refreshQueue(Application.songList);
-                            queueHandler.sortQueue();
-                            onSelectedMusicLibrary(0);
-                            break;
-
                     }
                 }
             }

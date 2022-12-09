@@ -35,7 +35,12 @@ public class SplashScreenActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     REQUEST_CODE);
         } else {
-            startMainActivity();
+            if (Application.songList.size() != 0) {
+                Application.queueList = Application.songList;
+                startMainActivity();
+            } else {
+                Toast.makeText(this, "No audio file was found", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -65,7 +70,12 @@ public class SplashScreenActivity extends AppCompatActivity {
                 });
                 alertDialog.show();
             } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                startMainActivity();
+                if (Application.songList.size() != 0) {
+                    Application.queueList = Application.songList;
+                    startMainActivity();
+                } else {
+                    Toast.makeText(this, "No audio file was found", Toast.LENGTH_LONG).show();
+                }
             }
         }
     }

@@ -9,49 +9,34 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class Application extends android.app.Application{
+    final static List<SongClass> songList = loadSongList();
     static ArrayList<SongClass> sortedList;
-    static ArrayList<SongClass> songList;
     static ArrayList<SongClass> queueList;
 
     static Context context;
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-
-        loadSongList();
-    }
-
     // Chama a função de scannear os arquivos e adiciona eles ao array
-    public void loadSongList() {
-        Executor backgroundThread = Executors.newSingleThreadExecutor();
-        Handler postExecute = new Handler(Looper.getMainLooper());
-        songList = new ArrayList<>();
+    public static ArrayList<SongClass> loadSongList() {
+        ArrayList<SongClass> List = new ArrayList<>();
 
-        backgroundThread.execute(() -> {
-            ArrayList<File> fileArray = findFiles(Environment.getExternalStorageDirectory());
+        ArrayList<File> fileArray = findFiles(Environment.getExternalStorageDirectory());
 
-            for (File singleFile : fileArray) {
-                songList.add(new SongClass(singleFile.getName().replace(".mp3", "").replace(".wav", "")
-                        , singleFile.getPath()));
-            }
-            postExecute.post(() -> {
-                if (songList.size() != 0) {
-                    queueList = songList;
-                    Intent fileDiscoveryIntent = new Intent(NotificationManagement.FILE_DISCOVERED);
-                    this.sendBroadcast(fileDiscoveryIntent);
-                } else {
-                    Toast.makeText(this, "No audio file was found", Toast.LENGTH_LONG).show();
-                }
-            });
-        });
+        for (File singleFile : fileArray) {
+            List.add(new SongClass(singleFile.getName().replace(".mp3", "").replace(".wav", "")
+                    , singleFile.getPath()));
+        }
+
+        return List;
     }
 
-    public ArrayList<File> findFiles(File fileToScan) {
+    public static ArrayList<File> findFiles(File fileToScan) {
         ArrayList<File> fileArray = new ArrayList<>();
         File[] files = fileToScan.listFiles();
 
