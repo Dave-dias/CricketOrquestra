@@ -49,4 +49,5 @@ public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.
     public int getItemCount() {
         return Application.songList.size();
     }
+
 }

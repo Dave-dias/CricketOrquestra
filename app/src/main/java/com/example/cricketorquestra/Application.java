@@ -13,10 +13,11 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class Application extends android.app.Application{
-    static Context context;
     static ArrayList<SongClass> sortedList;
     static ArrayList<SongClass> songList;
     static ArrayList<SongClass> queueList;
+
+    static Context context;
 
     @Override
     public void onCreate() {
@@ -41,7 +42,6 @@ public class Application extends android.app.Application{
             postExecute.post(() -> {
                 if (songList.size() != 0) {
                     queueList = songList;
-
                     Intent fileDiscoveryIntent = new Intent(NotificationManagement.FILE_DISCOVERED);
                     this.sendBroadcast(fileDiscoveryIntent);
                 } else {

@@ -20,6 +20,7 @@ import androidx.fragment.app.FragmentManager;
 
 public class MainActivity extends AppCompatActivity implements MusicHandler, DisplayHandler{
     TextView tvNavBarLibrary, tvNavBarPlayer, tvNavBarQueue;
+    Drawable drwPlayer, drwLibrary;
 
     Fragment MusicPlayerFrag, SongLibraryFrag, QueueFrag;
     FragmentManager fragmentManager;
@@ -29,8 +30,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
     NotificationManagement notificationManagement;
     MediaPlayerService mediaService;
     Intent mediaServiceIntent;
-
-    Drawable drwPlayer, drwLibrary;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
