@@ -11,17 +11,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.ViewHolder> implements ItemTouchHandler{
     static MusicHandler musicHandler;
 
-    ArrayList<SongClass> queueList;
-
-    QueueAdapter (Context context, ArrayList<SongClass> queueList){
+    QueueAdapter (Context context){
         musicHandler = (MusicHandler) context;
-        this.queueList = queueList;
     }
-
 
     public class ViewHolder extends RecyclerView.ViewHolder{
         private final TextView tvCardName;
@@ -47,29 +45,27 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull QueueAdapter.ViewHolder holder, int position) {
-        holder.getTvCardName().setText((queueList.get(position).getTitle()));
+        holder.getTvCardName().setText((Application.queueList.get(position).getTitle()));
     }
 
     @Override
     public int getItemCount() {
-        return queueList.size();
+        return Application.queueList.size();
     }
 
     @Override
     public void onDrag(int oldPosition, int newPosition) {
-        Collections.swap(queueList, oldPosition, newPosition);
-        notifyItemMoved(oldPosition, newPosition);
-        MainActivity.queueList = queueList;
+        Collections.swap(Application.queueList, oldPosition, newPosition);
+        this.notifyItemMoved(oldPosition, newPosition);
 
-        if (MainActivity.currentSong == oldPosition){
-            MainActivity.currentSong = newPosition;
+        if (CurrentMusic.getIndex() == oldPosition){
+            CurrentMusic.setIndex(newPosition);
         }
     }
 
     @Override
     public void onSwipe(int position) {
-        MainActivity.queueList.remove(position);
-        queueList = MainActivity.queueList;
-        notifyDataSetChanged();
+        Application.queueList.remove(position);
+        this.notifyItemRemoved(position);
     }
 }

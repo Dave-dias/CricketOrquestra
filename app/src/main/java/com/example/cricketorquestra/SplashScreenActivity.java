@@ -21,10 +21,6 @@ import java.util.ArrayList;
 
 @SuppressLint("CustomSplashScreen")
 public class SplashScreenActivity extends AppCompatActivity {
-    final static String CHANNEL_ID = "Media_Player";
-    final static String ACTION_PREVIOUS = "Previous";
-    final static String ACTION_PLAY_PAUSE = "Play/Pause";
-    final static String ACTION_NEXT = "Next";
     final int REQUEST_CODE = 1;
     Intent intent;
 
@@ -32,8 +28,6 @@ public class SplashScreenActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
-
-        createNotificationChannel();
 
         // Pede pela permissão de ler os arquivos externos, caso permitido cria um array com eles
         // e chama a atividade principal
@@ -43,6 +37,12 @@ public class SplashScreenActivity extends AppCompatActivity {
         } else {
             startMainActivity();
         }
+    }
+
+    // Inicia a atividade principal pelo intent e procura por aquivos de audio no external storage
+    private void startMainActivity() {
+        intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
 
     // Exibe um dialogo caso o usuario não permita o aceso aos arquivos
@@ -57,7 +57,7 @@ public class SplashScreenActivity extends AppCompatActivity {
                         .setTitle("Permission was denied");
                 alertDialog.setPositiveButton("Ok, I'll grant it!", (dialog, which) ->
                         ActivityCompat.requestPermissions(SplashScreenActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        REQUEST_CODE));
+                                REQUEST_CODE));
 
                 alertDialog.setNegativeButton("No, I won't grant it!", (dialog, which) -> {
                     Toast.makeText(SplashScreenActivity.this, "The app will not function properly!", Toast.LENGTH_LONG).show();
@@ -68,20 +68,5 @@ public class SplashScreenActivity extends AppCompatActivity {
                 startMainActivity();
             }
         }
-    }
-
-    // Inicia a atividade principal pelo intent e procura por aquivos de audio no external storage
-    private void startMainActivity() {
-        intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
-    }
-
-    //Cria o canal de notificação
-    private void createNotificationChannel(){
-        NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID,
-                "Media player", NotificationManager.IMPORTANCE_HIGH);
-        notificationChannel.setDescription("Media player notification channel");
-        NotificationManager manager = getSystemService(NotificationManager.class);
-        manager.createNotificationChannel(notificationChannel);
     }
 }

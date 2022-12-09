@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-public class SongLibraryFragment extends Fragment {
+public class SongLibraryFragment extends Fragment implements LibraryHandler{
     static MusicHandler musicHandler;
     static SongLibraryAdapter myAdapter;
     RecyclerView.LayoutManager layoutManager;
@@ -37,13 +37,12 @@ public class SongLibraryFragment extends Fragment {
         layoutManager = new LinearLayoutManager(this.getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        myAdapter = new SongLibraryAdapter(this.getContext(), MainActivity.songList);
+        myAdapter = new SongLibraryAdapter(this.getContext());
         recyclerView.setAdapter(myAdapter);
     }
 
-    public static void refreshRecycleview (ArrayList<SongClass> songList){
-        myAdapter.songList = songList;
-        MainActivity.songList = songList;
+    @Override
+    public void refreshLibrary (){
         myAdapter.notifyDataSetChanged();
     }
 }

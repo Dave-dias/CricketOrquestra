@@ -9,19 +9,24 @@ public class NotificationReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction() != null){
             switch (intent.getAction()){
-                case SplashScreenActivity.ACTION_PREVIOUS:
-                    Intent previousIntent = new Intent(SplashScreenActivity.ACTION_PREVIOUS);
+                case NotificationManagement.ACTION_PREVIOUS:
+                    Intent previousIntent = new Intent(NotificationManagement.ACTION_PREVIOUS);
                     context.sendBroadcast(previousIntent);
                     break;
 
-                case SplashScreenActivity.ACTION_PLAY_PAUSE:
-                    Intent playPauseIntent = new Intent(SplashScreenActivity.ACTION_PLAY_PAUSE);
+                case NotificationManagement.ACTION_PLAY_PAUSE:
+                    Intent playPauseIntent = new Intent(NotificationManagement.ACTION_PLAY_PAUSE);
                     context.sendBroadcast(playPauseIntent);
                     break;
 
-                case SplashScreenActivity.ACTION_NEXT:
-                    Intent nextIntent = new Intent(SplashScreenActivity.ACTION_NEXT);
+                case NotificationManagement.ACTION_NEXT:
+                    Intent nextIntent = new Intent(NotificationManagement.ACTION_NEXT);
                     context.sendBroadcast(nextIntent);
+                    break;
+
+                case NotificationManagement.FILE_DISCOVERED:
+                    Intent fileDiscoveryIntent = new Intent(NotificationManagement.FILE_DISCOVERED);
+                    context.sendBroadcast(fileDiscoveryIntent);
                     break;
             }
         }

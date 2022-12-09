@@ -13,7 +13,7 @@
         android:id="@+id/appbarQueue"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="?attr/color">
+        android:backgroundTint="?attr/colorOnPrimary">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/topToolbar"
@@ -22,11 +22,23 @@
             app:contentInsetStartWithNavigation="0dp"
             app:navigationIcon="@drawable/ic_play_arrow"
             app:navigationIconTint="@color/white"
-            app:title="Playing now..."
-            app:titleTextColor="@color/white"
             app:subtitle="Song title will be displayed here"
-            app:subtitleTextColor="@color/white"/>
+            app:subtitleTextColor="@color/white"
+            app:title="Playing now..."
+            app:titleTextColor="@color/white">
+
+            <ImageButton
+                android:id="@+id/ivRefreshList"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:layout_marginRight="10dp"
+                android:clickable="true"
+                android:src="@drawable/ic_refresh" />
+
+        </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvQueue"

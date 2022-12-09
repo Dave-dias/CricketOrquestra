@@ -1,66 +1,44 @@
 package com.example.cricketorquestra;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
-import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.SeekBar;
+import android.os.IBinder;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import com.google.android.material.appbar.MaterialToolbar;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
-public class MainActivity extends AppCompatActivity implements MusicHandler {
-
-    enum displayedFragment {SONG_LIBRARY, MUSIC_PLAYER, QUEUE_LIST}
-
-    ImageView ivCover, ivPausePlay, ivSkipNext, ivSkipPrevious, ivShuffle, ivRepeat;
-    TextView tvSongTitle, tvNavBarLibrary, tvNavBarPlayer, tvNavBarQueue;
-    ProgressBar pbSongList;
-    SeekBar sbPlayerBar;
-    MaterialToolbar topToolbar;
+public class MainActivity extends AppCompatActivity implements MusicHandler, DisplayHandler{
+    TextView tvNavBarLibrary, tvNavBarPlayer, tvNavBarQueue;
 
     Fragment MusicPlayerFrag, SongLibraryFrag, QueueFrag;
     FragmentManager fragmentManager;
-    MediaPlayer mediaPlayer;
+    PlayerHandler playerHandler;
+    QueueHandler queueHandler;
+    LibraryHandler libraryHandler;
+    NotificationManagement notificationManagement;
+    MediaPlayerService mediaService;
+    Intent mediaServiceIntent;
 
-    static ArrayList<SongClass> songList;
-    static ArrayList<SongClass> queueList;
-    static ArrayList<SongClass> sortedList;
-    static int currentSong = 0;
     Drawable drwPlayer, drwLibrary;
-    PlayerStates currentState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         setContentView(R.layout.activity_main);
+
+        Application.context = MainActivity.this;
 
         // Costumizando a actionbar
         if (getSupportActionBar() != null) {
@@ -69,17 +47,19 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
             getSupportActionBar().setDisplayUseLogoEnabled(true);
         }
 
-        // Setando os fragementos, arrays e criando o media player
-        currentState = PlayerStates.REPEAT_ON;
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setLooping(false);
-        setReceiverUp();
-        loadSongList();
+        notificationManagement = new NotificationManagement(this);
+        notificationManagement.createNotificationChannel();
 
         fragmentManager = getSupportFragmentManager();
         SongLibraryFrag = new SongLibraryFragment();
         MusicPlayerFrag = new MusicPlayerFragment();
         QueueFrag = new QueueFragment();
+
+        playerHandler = (PlayerHandler) MusicPlayerFrag;
+        libraryHandler = (LibraryHandler) SongLibraryFrag;
+        queueHandler = (QueueHandler) QueueFrag;
+
+        setReceiverUp();
 
         fragmentManager.beginTransaction()
                 .add(R.id.FragmentContainer, SongLibraryFrag)
@@ -91,8 +71,13 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
                 .commitNow();
     }
 
-    // Caso tente setar no onCreate, as views não são encontradas
-    // pois não foram criadas ainda
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mediaServiceIntent = new Intent(this, MediaPlayerService.class);
+        bindService(mediaServiceIntent, connection,Context.BIND_AUTO_CREATE);
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -104,9 +89,15 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        stopService(mediaServiceIntent);
+        unbindService(connection);
+    }
+
+    @Override
     protected void onDestroy() {
-        NotificationManager manager = this.getSystemService(NotificationManager.class);
-        manager.cancel(0);
+        notificationManagement.cancelNotification();
         super.onDestroy();
     }
 
@@ -118,14 +109,12 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
             if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 tvNavBarPlayer.setCompoundDrawables(null, null, null, null);
                 tvNavBarLibrary.setCompoundDrawables(null, null, null, null);
-                ivCover.setVisibility(View.GONE);
                 getSupportActionBar().hide();
             } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
                 tvNavBarPlayer.setCompoundDrawablesRelativeWithIntrinsicBounds(
                         null, null, null, drwPlayer);
                 tvNavBarLibrary.setCompoundDrawablesRelativeWithIntrinsicBounds(
                         null, null, null, drwLibrary);
-                ivCover.setVisibility(View.VISIBLE);
                 getSupportActionBar().show();
             }
         }
@@ -133,37 +122,59 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
 
     @Override
     public void onBackPressed() {
-        fragmentSwitch(displayedFragment.MUSIC_PLAYER);
+        fragmentSwitch(DisplayedFragment.MUSIC_PLAYER);
     }
 
-    // Classe que recebe o broadcast do NotificationReceiver
-    public BroadcastReceiver MainActivityReceiver = new BroadcastReceiver() {
+    private final ServiceConnection connection = new ServiceConnection() {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction() != null) {
-                switch (intent.getAction()) {
-                    case SplashScreenActivity.ACTION_PREVIOUS:
-                        previousAudio();
-                        break;
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
+            mediaService = binder.getService();
+        }
 
-                    case SplashScreenActivity.ACTION_PLAY_PAUSE:
-                        playPauseSwitch();
-                        break;
-
-                    case SplashScreenActivity.ACTION_NEXT:
-                        nextAudio();
-                        break;
-                }
-            }
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
         }
     };
 
-    // Registra o receiver local
+
     private void setReceiverUp() {
         IntentFilter filter = new IntentFilter();
         filter.addAction("Play/Pause");
         filter.addAction("Previous");
         filter.addAction("Next");
+        filter.addAction("Discovered");
+
+        // Classe que recebe o broadcast do NotificationReceiver
+        BroadcastReceiver MainActivityReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction() != null) {
+                    switch (intent.getAction()) {
+                        case NotificationManagement.ACTION_PREVIOUS:
+                            onPreviousAudioSelected();
+                            break;
+
+                        case NotificationManagement.ACTION_PLAY_PAUSE:
+                            playerHandler.playPauseSwitch();
+                            break;
+
+                        case NotificationManagement.ACTION_NEXT:
+                            onNextAudioSelected();
+                            break;
+
+                        case NotificationManagement.FILE_DISCOVERED:
+                            libraryHandler.refreshLibrary();
+                            queueHandler.refreshQueue(Application.songList);
+                            queueHandler.sortQueue();
+                            onSelectedMusicLibrary(0);
+                            break;
+
+                    }
+                }
+            }
+        };
+
         registerReceiver(MainActivityReceiver, filter);
     }
 
@@ -171,69 +182,13 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         tvNavBarLibrary = findViewById(R.id.tvNavLibrary);
         tvNavBarQueue = findViewById(R.id.tvNavQueue);
         tvNavBarPlayer = findViewById(R.id.tvNavPlayer);
-        ivCover = findViewById(R.id.ivCover);
-        ivPausePlay = findViewById(R.id.ivPausePlay);
-        ivSkipNext = findViewById(R.id.ivSkipNext);
-        ivSkipPrevious = findViewById(R.id.ivSkipPrevious);
-        ivShuffle = findViewById(R.id.ivShuffle);
-        ivRepeat = findViewById(R.id.ivRepeat);
-        tvSongTitle = findViewById(R.id.tvSongTitle);
-        sbPlayerBar = findViewById(R.id.sbPlayerBar);
-        pbSongList = findViewById(R.id.pbSongList);
-        topToolbar = findViewById(R.id.topToolbar);
 
-        setOnListeners();
+        tvNavBarPlayer.setOnClickListener(v -> fragmentSwitch(DisplayedFragment.MUSIC_PLAYER));
+        tvNavBarLibrary.setOnClickListener(v -> fragmentSwitch(DisplayedFragment.SONG_LIBRARY));
+        tvNavBarQueue.setOnClickListener(v -> fragmentSwitch(DisplayedFragment.QUEUE_LIST));
     }
 
-    private void setOnListeners() {
-        tvNavBarPlayer.setOnClickListener(v -> fragmentSwitch(displayedFragment.MUSIC_PLAYER));
-
-        tvNavBarLibrary.setOnClickListener(v -> fragmentSwitch(displayedFragment.SONG_LIBRARY));
-
-        tvNavBarQueue.setOnClickListener(v -> fragmentSwitch(displayedFragment.QUEUE_LIST));
-
-        ivPausePlay.setOnClickListener(v -> playPauseSwitch());
-
-        ivSkipNext.setOnClickListener(v -> nextAudio());
-
-        ivSkipPrevious.setOnClickListener(v -> previousAudio());
-
-        ivShuffle.setOnClickListener(v -> shuffleSwitch());
-
-        ivRepeat.setOnClickListener(v -> repeatSwitch());
-
-        mediaPlayer.setOnCompletionListener(mp -> nextAudio());
-
-        mediaPlayer.setOnErrorListener((mp, what, extra) -> true);
-
-        mediaPlayer.setOnPreparedListener(mp -> {
-            // Quando o player estiver pronto este listener dá play no audio
-            // e seta as informações dela
-            mp.start();
-            setAudioUp();
-        });
-
-        sbPlayerBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (mediaPlayer != null) {
-                    if (fromUser) {
-                        mediaPlayer.seekTo(progress);
-                    }
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
-    }
-
-    void fragmentSwitch(displayedFragment display) {
+    void fragmentSwitch(DisplayedFragment display) {
         switch (display) {
             case SONG_LIBRARY:
                 if (getSupportActionBar() != null){
@@ -269,258 +224,97 @@ public class MainActivity extends AppCompatActivity implements MusicHandler {
         }
     }
 
-    // Cria notificação, seta ações e dá display nela
-    private void showNotification() {
-        Intent contentIntent = new Intent(this, MainActivity.class)
-                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent contentPendingIntent = PendingIntent.getActivity(this,
-                0, contentIntent, PendingIntent.FLAG_UPDATE_CURRENT |
-                        PendingIntent.FLAG_IMMUTABLE);
-
-        Intent previousIntent = new Intent(this, NotificationReceiver.class)
-                .setAction(SplashScreenActivity.ACTION_PREVIOUS);
-        PendingIntent previousPendingIntent = PendingIntent.getBroadcast(this,
-                0, previousIntent, PendingIntent.FLAG_UPDATE_CURRENT |
-                        PendingIntent.FLAG_IMMUTABLE);
-
-        Intent playPauseIntent = new Intent(this, NotificationReceiver.class)
-                .setAction(SplashScreenActivity.ACTION_PLAY_PAUSE);
-        PendingIntent playPausePendingIntent = PendingIntent.getBroadcast(this,
-                0, playPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT |
-                        PendingIntent.FLAG_IMMUTABLE);
-
-        Intent nextIntent = new Intent(this, NotificationReceiver.class)
-                .setAction(SplashScreenActivity.ACTION_NEXT);
-        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this,
-                0, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT |
-                        PendingIntent.FLAG_IMMUTABLE);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, SplashScreenActivity.CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_music_note)
-                .setContentTitle("Playing now...")
-                .setContentText(queueList.get(currentSong).getTitle())
-                .setContentIntent(contentPendingIntent)
-                .addAction(R.drawable.ic_skip_previous, "Previous", previousPendingIntent)
-                .addAction(R.drawable.ic_play_circle, "Play/Pause", playPausePendingIntent)
-                .addAction(R.drawable.ic_skip_next, "Next", nextPendingIntent)
-                .setOnlyAlertOnce(true);
-
-        NotificationManager manager = getSystemService(NotificationManager.class);
-        manager.notify(0, builder.build());
-    }
-
     // Reseta o media player e dá start na musica selecionada
     @Override
     public void onSelectedMusicLibrary(int index) {
-        currentState = PlayerStates.REPEAT_ONE_ON;
-        currentSong = index;
-        clearMediaPlayer();
-        repeatSwitch();
-        try {
-            mediaPlayer.setDataSource(songList.get(index).getSourceFolder());
-            mediaPlayer.prepareAsync();
-            resetQueue();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        queueHandler.refreshQueue(Application.songList);
+        onSelectedQueue(index);
     }
 
     @Override
     public void onSelectedQueue(int index) {
-        currentSong = index;
-        clearMediaPlayer();
-        try {
-            mediaPlayer.setDataSource(queueList.get(index).getSourceFolder());
-            mediaPlayer.prepareAsync();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        CurrentMusic.setThisObject(Application.queueList.get(index));
+        CurrentMusic.setIsPlaying(false);
+        CurrentMusic.setIndex(index);
+
+        mediaServiceIntent.putExtra("Audio File",
+                CurrentMusic.getThisObject().getSourceFolder());
+        startService(mediaServiceIntent);
+
+        notificationManagement.showNotification();
     }
 
-    // Reseta o Media player
-    private void clearMediaPlayer() {
-        mediaPlayer.stop();
-        mediaPlayer.reset();
+    @Override
+    public void setQueueUp() {
+        queueHandler.setViewsUp();
     }
 
-    public void playPauseSwitch() {
-        if (mediaPlayer != null) {
-            if (!mediaPlayer.isPlaying()) {
-                mediaPlayer.start();
-                ivPausePlay.setImageResource(R.drawable.ic_pause_circle);
-            } else {
-                mediaPlayer.pause();
-                ivPausePlay.setImageResource(R.drawable.ic_play_circle);
-            }
-        }
+    @Override
+    public void setPlayerUp() {
+        playerHandler.setViewsUp();
     }
 
-    // Alterna os estados do player
-    public void shuffleSwitch() {
-        if (currentState == PlayerStates.SHUFFLE_ON) {
-            currentState = PlayerStates.SHUFFLE_OFF;
-            ivShuffle.setImageResource(R.drawable.ic_shuffle);
-            resetQueue();
+    @Override
+    public void setLibraryUp() {
+        libraryHandler.refreshLibrary();
+    }
+
+    @Override
+    public void onMusicStopped() {
+        onNextAudioSelected();
+    }
+
+    @Override
+    public void onPlayPauseSwitch() {
+        mediaService.playPauseMedia();
+    }
+
+    @Override
+    public void onNextAudioSelected() {
+        if (CurrentMusic.getIndex() == Application.queueList.size() - 1) {
+            onSelectedQueue(CurrentMusic.getIndex());
+        } else if (MusicPlayerFragment.currentPlayerState == PlayerStates.REPEAT_ONE_ON) {
+            onSelectedQueue(CurrentMusic.getIndex());
         } else {
-            currentState = PlayerStates.SHUFFLE_ON;
-            ivShuffle.setImageResource(R.drawable.ic_shuffle_on);
-            ivRepeat.setImageResource(R.drawable.ic_repeat);
-            setSortedList();
+            onSelectedQueue(CurrentMusic.getIndex() + 1);
         }
-        mediaPlayer.setLooping(false);
     }
 
-    // Alterna os estados do player
-    public void repeatSwitch() {
-        ivShuffle.setImageResource(R.drawable.ic_shuffle);
-        if (currentState == PlayerStates.REPEAT_ON) {
-            currentState = PlayerStates.REPEAT_ONE_ON;
-            ivRepeat.setImageResource(R.drawable.ic_repeat_one_on);
-            mediaPlayer.setLooping(true);
+    @Override
+    public void onPreviousAudioSelected() {
+        if (CurrentMusic.getIndex() == 0) {
+            onSelectedQueue(0);
+        } else if (MusicPlayerFragment.currentPlayerState == PlayerStates.REPEAT_ONE_ON) {
+            onSelectedQueue(CurrentMusic.getIndex());
         } else {
-            currentState = PlayerStates.REPEAT_ON;
-            ivRepeat.setImageResource(R.drawable.ic_repeat);
-            mediaPlayer.setLooping(false);
-            resetQueue();
+            onSelectedQueue(CurrentMusic.getIndex() - 1);
         }
     }
 
-    // Verifica se existe audio anterior, se existe seleciona o audio
-    public void previousAudio() {
-        // Caso o shuffle esteja ativado chama um novo audio aleatorio
-        if (currentSong == 0) {
-            onSelectedQueue(currentSong);
-        } else {
-            onSelectedQueue(currentSong - 1);
-        }
+    @Override
+    public void onRepeatSwitch() {
+        mediaService.switchLoop(MusicPlayerFragment.currentPlayerState == PlayerStates.REPEAT_ONE_ON);
     }
 
-    // Verifica se existe audio posterior, se existe seleciona o audio
-    public void nextAudio() {
-        // Caso o shuffle esteja ativado chama um o metodo de sorteio
-        if (currentSong == queueList.size() - 1) {
-            onSelectedQueue(currentSong);
-            resetQueue();
-        } else {
-            onSelectedQueue(currentSong + 1);
-        }
+    @Override
+    public void onShuffleSwitch() {
+        mediaService.switchLoop(false);
+        queueHandler.refreshQueue(Application.sortedList);
+        queueHandler.sortQueue();
     }
 
-    private void sortQueue() {
-        Executor backgroundThread = Executors.newSingleThreadExecutor();
-        sortedList = new ArrayList<>();
-
-        backgroundThread.execute(() -> {
-            while (sortedList.size() <= songList.size()) {
-                // Gera um numero aleatorio dentro do intervado entre 0 e o tamanho do array de musicas
-                int index = (int) Math.floor((Math.random() * songList.size()));
-                if (!sortedList.contains(songList.get(index))) {
-                    sortedList.add(songList.get(index));
-                }
-            }
-        });
+    @Override
+    public void onProgressChanged(int progress) {
+        mediaService.seekToProgress(progress);
     }
 
-    private void resetQueue() {
-        QueueFragment.refreshQueueList(songList);
-        sortQueue();
+    @Override
+    public int getCurrentProgress(){
+        return mediaService.getProgress();
     }
 
-    private void setSortedList() {
-        QueueFragment.refreshQueueList(sortedList);
-    }
-
-    // Atualiza o progreesso da barra
-    private void updateSeekbar() {
-        Thread timer = new Thread(() -> {
-            int totalProgress = mediaPlayer.getDuration();
-            int currentProgress = 0;
-
-            while (currentProgress < totalProgress) {
-                try {
-                    Thread.sleep(500);
-                    currentProgress = mediaPlayer.getCurrentPosition();
-                    sbPlayerBar.setProgress(currentProgress);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        sbPlayerBar.setMax(mediaPlayer.getDuration());
-        timer.start();
-    }
-
-    // Atualiza as informações e botões na tela do player
-    private void setAudioUp() {
-        showNotification();
-        updateSeekbar();
-
-        topToolbar.setSubtitle(queueList.get(currentSong).getTitle());
-        tvSongTitle.setText(queueList.get(currentSong).getTitle());
-
-        if (!mediaPlayer.isPlaying()) {
-            ivPausePlay.setImageResource(R.drawable.ic_play_circle);
-        } else {
-            ivPausePlay.setImageResource(R.drawable.ic_pause_circle);
-        }
-
-        switch (currentState) {
-            case REPEAT_ON:
-                ivRepeat.setImageResource(R.drawable.ic_repeat);
-                break;
-            case REPEAT_ONE_ON:
-                ivRepeat.setImageResource(R.drawable.ic_repeat_one_on);
-                break;
-            case SHUFFLE_ON:
-                ivShuffle.setImageResource(R.drawable.ic_shuffle_on);
-                break;
-        }
-    }
-
-    // Chama a função de scannear os arquivos e adiciona eles ao array
-    public void loadSongList() {
-        Executor backgroundThread = Executors.newSingleThreadExecutor();
-        Handler postExecute = new Handler(Looper.getMainLooper());
-        songList = new ArrayList<>();
-
-        backgroundThread.execute(() -> {
-            ArrayList<File> fileArray = findFiles(Environment.getExternalStorageDirectory());
-
-            for (File singleFile : fileArray) {
-                songList.add(new SongClass(singleFile.getName().replace(".mp3", "").replace(".wav", "")
-                        , singleFile.getPath()));
-            }
-
-            postExecute.post(() -> {
-                pbSongList.setVisibility(View.INVISIBLE);
-                if (songList.size() != 0) {
-                    //Seleciona a primeira musica da lista e atualiza o recycleview
-                    SongLibraryFragment.refreshRecycleview(songList);
-                    resetQueue();
-                    onSelectedQueue(0);
-                    sortQueue();
-                } else {
-                    Toast.makeText(MainActivity.this, "No audio file was found", Toast.LENGTH_LONG).show();
-                    finish();
-                }
-            });
-        });
-    }
-
-    public ArrayList<File> findFiles(File fileToScan) {
-        ArrayList<File> fileArray = new ArrayList<>();
-        File[] files = fileToScan.listFiles();
-
-        if (files != null) {
-            for (File singleFile : files) {
-                // Caso o arquivo seja um diretorio chama ela propria passando o arquivo
-                if (singleFile.isDirectory() && !singleFile.isHidden()) {
-                    fileArray.addAll(findFiles(singleFile));
-                } else if (singleFile.getName().endsWith(".mp3") || singleFile.getName().endsWith(".wav")) {
-                    fileArray.add(singleFile);
-                }
-            }
-        }
-        return fileArray;
+    @Override
+    public int getTotalProgress(){
+        return mediaService.getTotalProgress();
     }
 }

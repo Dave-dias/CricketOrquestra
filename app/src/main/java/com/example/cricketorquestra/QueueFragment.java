@@ -6,7 +6,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.ItemTouchHelper.Callback;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -14,13 +13,21 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+
+import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.ArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
-public class QueueFragment extends Fragment {
-    static QueueAdapter myAdapter;
-    RecyclerView.LayoutManager layoutManager;
+public class QueueFragment extends Fragment implements QueueHandler {
+    MaterialToolbar topToolbar;
+    ImageButton ivRefreshList;
     RecyclerView rvQueue;
+
+    QueueAdapter myAdapter;
+    RecyclerView.LayoutManager layoutManager;
     View view;
 
     @Override
@@ -34,23 +41,49 @@ public class QueueFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        topToolbar = view.findViewById(R.id.topToolbar);
+        ivRefreshList = view.findViewById(R.id.ivRefreshList);
+
+        ivRefreshList.setOnClickListener(v -> refreshQueue(Application.songList));
+
         rvQueue = view.findViewById(R.id.rvQueue);
         rvQueue.setHasFixedSize(true);
 
         layoutManager = new LinearLayoutManager(this.getContext());
         rvQueue.setLayoutManager(layoutManager);
 
-        myAdapter = new QueueAdapter(this.getContext(), MainActivity.songList);
+        myAdapter = new QueueAdapter(this.getContext());
         ItemTouchHelper.Callback callBack = new ItemTouchHelperClass(myAdapter);
         ItemTouchHelper touchHelper = new ItemTouchHelper(callBack);
         touchHelper.attachToRecyclerView(rvQueue);
         rvQueue.setAdapter(myAdapter);
     }
 
-    public static void refreshQueueList(ArrayList<SongClass> queueList) {
-        myAdapter.queueList = queueList;
-        MainActivity.queueList = queueList;
+    @Override
+    public void setViewsUp() {
+        topToolbar.setSubtitle(CurrentMusic.getThisObject().getTitle());
+    }
+
+    @Override
+    public void refreshQueue(ArrayList<SongClass> newQueueList) {
+        Application.queueList = newQueueList;
         myAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void sortQueue() {
+        Executor backgroundThread = Executors.newSingleThreadExecutor();
+        Application.sortedList = new ArrayList<>();
+
+        backgroundThread.execute(() -> {
+            while (Application.sortedList.size() <= Application.songList.size()) {
+                // Gera um numero aleatorio dentro do intervado entre 0 e o tamanho do array de musicas
+                int index = (int) Math.floor((Math.random() * Application.songList.size()));
+                if (!Application.sortedList.contains(Application.songList.get(index))) {
+                    Application.sortedList.add(Application.songList.get(index));
+                }
+            }
+        });
     }
 
     private class ItemTouchHelperClass extends androidx.recyclerview.widget.ItemTouchHelper.Callback {
@@ -82,15 +115,16 @@ public class QueueFragment extends Fragment {
         @Override
         public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
             adapter.onDrag(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+            refreshQueue(Application.queueList);
             return true;
         }
 
         @Override
         public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-            if (viewHolder.getAdapterPosition() != MainActivity.currentSong){
+            if (viewHolder.getAdapterPosition() != CurrentMusic.getIndex()){
                 adapter.onSwipe(viewHolder.getAdapterPosition());
             } else {
-                refreshQueueList(MainActivity.queueList);
+                refreshQueue(Application.queueList);
             }
         }
     }

@@ -14,11 +14,8 @@ import java.util.ArrayList;
 public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.ViewHolder> {
     static MusicHandler musicHandler;
 
-    ArrayList<SongClass> songList;
-
-    SongLibraryAdapter (Context context, ArrayList<SongClass> songList){
+    SongLibraryAdapter (Context context){
         musicHandler = (MusicHandler) context;
-        this.songList = songList;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
@@ -45,11 +42,11 @@ public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull SongLibraryAdapter.ViewHolder holder, int position) {
-        holder.getTvCardName().setText((songList.get(position).getTitle()));
+        holder.getTvCardName().setText((Application.songList.get(position).getTitle()));
     }
 
     @Override
     public int getItemCount() {
-        return songList.size();
+        return Application.songList.size();
     }
 }
