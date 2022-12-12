@@ -7,7 +7,6 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Looper;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,8 +17,6 @@ import androidx.core.content.ContextCompat;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 @SuppressLint("CustomSplashScreen")
 public class SplashScreenActivity extends AppCompatActivity {
@@ -37,8 +34,8 @@ public class SplashScreenActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     REQUEST_CODE);
         } else {
-            loadSongList();
             startMainActivity();
+            loadSongList();
         }
     }
 
@@ -68,36 +65,45 @@ public class SplashScreenActivity extends AppCompatActivity {
                 });
                 alertDialog.show();
             } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                loadSongList();
                 startMainActivity();
+                loadSongList();
             }
         }
     }
 
     // Chama a função de scannear os arquivos e adiciona eles ao array
     public void loadSongList() {
-        Executor backgroundThread = Executors.newSingleThreadExecutor();
-        Handler postExecute = new Handler(Looper.getMainLooper());
-        SongCase.finalSongList = new ArrayList<>();
+        Handler postExecute = new Handler(getMainLooper());
+        ArrayList<SongClass> files = new ArrayList<>();
 
-        backgroundThread.execute(() -> {
+        Thread thread = new Thread(() -> {
             ArrayList<File> fileArray = findFiles(Environment.getExternalStorageDirectory());
 
             for (File singleFile : fileArray) {
-                SongCase.finalSongList.add(new SongClass(singleFile.getName().replace(".mp3", "").replace(".wav", "")
+                files.add(new SongClass(singleFile.getName().replace(".mp3", "").replace(".wav", "")
                         , singleFile.getPath()));
             }
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             postExecute.post(() -> {
-                if (SongCase.finalSongList.size() != 0) {
-                    SongCase.setSongList(SongCase.finalSongList);
-                    SongCase.setQueueList(SongCase.getSongList());
+                if (files.size() != 0) {
+                    SongCase.setFinalSongList(files);
+                    SongCase.setSongList(SongCase.getFinalSongList());
+                    SongCase.setQueueList(SongCase.getFinalSongList());
+
                     Intent fileDiscoveryIntent = new Intent(NotificationManagement.FILE_DISCOVERED);
-                    this.sendBroadcast(fileDiscoveryIntent);
+                    getApplicationContext().sendBroadcast(fileDiscoveryIntent);
                 } else {
-                    Toast.makeText(this, "No audio file was found", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "No audio file was found", Toast.LENGTH_LONG).show();
                 }
             });
         });
+        thread.start();
     }
 
     public ArrayList<File> findFiles(File fileToScan) {

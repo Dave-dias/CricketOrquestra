@@ -38,14 +38,13 @@ public class SongLibraryFragment extends Fragment implements LibraryHandler{
         layoutManager = new LinearLayoutManager(this.getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        myAdapter = new SongLibraryAdapter(this.getContext(), SongCase.songList);
+        myAdapter = new SongLibraryAdapter(this.getContext(), SongCase.getSongList());
         recyclerView.setAdapter(myAdapter);
     }
 
     @Override
     public void refreshLibrary (){
-        myAdapter.songList.clear();
-        myAdapter.songList.addAll(SongCase.songList);
+        myAdapter.songList = SongCase.getSongList();
         myAdapter.notifyDataSetChanged();
     }
 }

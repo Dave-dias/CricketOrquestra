@@ -1,15 +1,17 @@
 package com.example.cricketorquestra;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class SongCase {
-    static ArrayList<SongClass> songList;
-    static ArrayList<SongClass> sortedList;
-    static ArrayList<SongClass> queueList;
-    static ArrayList<SongClass> finalSongList;
+    static ArrayList<SongClass> songList = new ArrayList<>();
+    static ArrayList<SongClass> sortedList = new ArrayList<>();
+    static ArrayList<SongClass> queueList = new ArrayList<>();
+    static List<SongClass> finalSongList = Collections.emptyList();
 
     public static ArrayList<SongClass> getSongList() {
-        songList = finalSongList;
+        songList = getFinalSongList();
         return songList;
     }
 
@@ -33,7 +35,11 @@ public class SongCase {
         SongCase.queueList = queueList;
     }
 
-    public static void setFinalSongList(ArrayList<SongClass> finalSongList) {
-        SongCase.finalSongList = finalSongList;
+    public static ArrayList<SongClass> getFinalSongList() {
+        return new ArrayList<>(finalSongList);
+    }
+
+    public static void setFinalSongList(List<SongClass> finalSongList) {
+        SongCase.finalSongList = Collections.unmodifiableList(finalSongList);
     }
 }

@@ -46,12 +46,12 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull QueueAdapter.ViewHolder holder, int position) {
-        holder.getTvCardName().setText((SongCase.queueList.get(position).getTitle()));
+        holder.getTvCardName().setText((SongCase.getQueueList().get(position).getTitle()));
     }
 
     @Override
     public int getItemCount() {
-        return SongCase.queueList.size();
+        return SongCase.getQueueList().size();
     }
 
     @Override

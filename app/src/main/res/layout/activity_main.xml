@@ -20,6 +20,18 @@
         android:layout_weight="1"
         android:background="?attr/colorPrimary">
 
+        <ProgressBar
+            android:id="@+id/pbLoadingFiles"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="5dp"
+            android:indeterminate="true"
+            android:indeterminateTint="?attr/colorOnPrimary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <TextView
             android:id="@+id/tvNavPlayer"
             android:layout_width="0dp"
@@ -27,6 +39,7 @@
             android:backgroundTint="@color/white"
             android:clickable="true"
             android:gravity="center"
+            android:minHeight="48dp"
             android:text="Player"
             android:textColor="?attr/colorSecondaryVariant"
             android:textStyle="bold"
@@ -44,6 +57,7 @@
             android:backgroundTint="@color/white"
             android:clickable="true"
             android:gravity="center"
+            android:minHeight="48dp"
             android:text="Queue"
             android:textColor="?attr/colorSecondaryVariant"
             android:textStyle="bold"
@@ -61,6 +75,7 @@
             android:backgroundTint="@color/white"
             android:clickable="true"
             android:gravity="center"
+            android:minHeight="48dp"
             android:text="Library"
             android:textColor="?attr/colorSecondaryVariant"
             android:textStyle="bold"

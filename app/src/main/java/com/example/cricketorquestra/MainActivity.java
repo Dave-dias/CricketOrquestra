@@ -10,6 +10,8 @@ import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -21,6 +23,7 @@ import androidx.fragment.app.FragmentManager;
 public class MainActivity extends AppCompatActivity implements MusicHandler, DisplayHandler{
     TextView tvNavBarLibrary, tvNavBarPlayer, tvNavBarQueue;
     Drawable drwPlayer, drwLibrary, drwQueue;
+    ProgressBar pbLoadingFiles;
 
     Fragment MusicPlayerFrag, SongLibraryFrag, QueueFrag;
     FragmentManager fragmentManager;
@@ -37,16 +40,16 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         setContentView(R.layout.activity_main);
 
+        setReceiverUp();
+
+        mediaServiceIntent = new Intent(this, MediaPlayerService.class);
+        bindService(mediaServiceIntent, connection,Context.BIND_AUTO_CREATE);
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
             getSupportActionBar().setLogo(R.mipmap.ic_launcher_foreground);
             getSupportActionBar().setDisplayUseLogoEnabled(true);
         }
-
-        mediaServiceIntent = new Intent(this, MediaPlayerService.class);
-        bindService(mediaServiceIntent, connection,Context.BIND_AUTO_CREATE);
-
-        setReceiverUp();
 
         notificationManagement = new NotificationManagement(this);
         notificationManagement.createNotificationChannel();
@@ -100,12 +103,15 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
             if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 tvNavBarPlayer.setCompoundDrawables(null, null, null, null);
                 tvNavBarLibrary.setCompoundDrawables(null, null, null, null);
+                tvNavBarQueue.setCompoundDrawables(null, null,null, null);
                 getSupportActionBar().hide();
             } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
                 tvNavBarPlayer.setCompoundDrawablesRelativeWithIntrinsicBounds(
                         null, null, null, drwPlayer);
                 tvNavBarLibrary.setCompoundDrawablesRelativeWithIntrinsicBounds(
                         null, null, null, drwLibrary);
+                tvNavBarLibrary.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                        null, null, null, drwQueue);
                 getSupportActionBar().show();
             }
         }
@@ -166,10 +172,10 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
                             break;
 
                         case NotificationManagement.FILE_DISCOVERED:
+                            pbLoadingFiles.setVisibility(View.INVISIBLE);
                             libraryHandler.refreshLibrary();
-                            queueHandler.refreshQueue(SongCase.songList);
+                            queueHandler.refreshQueue(SongCase.getSongList());
                             queueHandler.sortQueue();
-                            onSelectedMusicLibrary(0);
                             break;
                     }
                 }
@@ -183,6 +189,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
         tvNavBarLibrary = findViewById(R.id.tvNavLibrary);
         tvNavBarQueue = findViewById(R.id.tvNavQueue);
         tvNavBarPlayer = findViewById(R.id.tvNavPlayer);
+        pbLoadingFiles = findViewById(R.id.pbLoadingFiles);
 
         tvNavBarPlayer.setOnClickListener(v -> fragmentSwitch(DisplayedFragment.MUSIC_PLAYER));
         tvNavBarLibrary.setOnClickListener(v -> fragmentSwitch(DisplayedFragment.SONG_LIBRARY));
@@ -228,13 +235,13 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
     // Reseta o media player e dá start na musica selecionada
     @Override
     public void onSelectedMusicLibrary(int index) {
-        queueHandler.refreshQueue(SongCase.songList);
+        queueHandler.refreshQueue(SongCase.getSongList());
         onSelectedQueue(index);
     }
 
     @Override
     public void onSelectedQueue(int index) {
-        CurrentMusic.setThisObject(SongCase.queueList.get(index));
+        CurrentMusic.setThisObject(SongCase.getQueueList().get(index));
         CurrentMusic.setIsPlaying(false);
         CurrentMusic.setIndex(index);
 
@@ -262,7 +269,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
 
     @Override
     public void onNextAudioSelected() {
-        if (CurrentMusic.getIndex() == SongCase.queueList.size() - 1) {
+        if (CurrentMusic.getIndex() == SongCase.getQueueList().size() - 1) {
             onSelectedQueue(CurrentMusic.getIndex());
         } else if (MusicPlayerFragment.currentPlayerState == PlayerStates.REPEAT_ONE_ON) {
             onSelectedQueue(CurrentMusic.getIndex());
@@ -290,9 +297,10 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
     @Override
     public void onShuffleSwitch() {
         if (MusicPlayerFragment.currentPlayerState == PlayerStates.SHUFFLE_ON){
-            queueHandler.refreshQueue(SongCase.sortedList);
+            queueHandler.refreshQueue(SongCase.getSortedList());
+            queueHandler.shuffleActivated();
         } else {
-            queueHandler.refreshQueue(SongCase.songList);
+            queueHandler.refreshQueue(SongCase.getSongList());
         }
 
         mediaService.switchLoop(false);
@@ -300,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
     }
 
     @Override
-    public void onProgressChanged(int progress) {mediaService.seekToProgress(progress);}
+    public void onProgressChanged(int progress) { mediaService.seekToProgress(progress);}
 
     @Override
     public int getCurrentProgress(){return mediaService.getProgress();}

@@ -14,11 +14,11 @@ import java.util.ArrayList;
 public class SongLibraryAdapter extends RecyclerView.Adapter<SongLibraryAdapter.ViewHolder> {
     static MusicHandler musicHandler;
 
-    ArrayList<SongClass> songList = new ArrayList<>();
+    ArrayList<SongClass> songList;
 
     SongLibraryAdapter (Context context, ArrayList<SongClass> songList){
         musicHandler = (MusicHandler) context;
-        this.songList.addAll(songList);
+        this.songList = songList;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder{

@@ -1,7 +1,10 @@
 package com.example.cricketorquestra;
 
-import android.app.Application;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -9,12 +12,6 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageButton;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
@@ -45,7 +42,7 @@ public class QueueFragment extends Fragment implements QueueHandler {
         topToolbar = view.findViewById(R.id.topToolbar);
         ivRefreshList = view.findViewById(R.id.ivRefreshList);
 
-        ivRefreshList.setOnClickListener(v -> refreshQueue(SongCase.songList));
+        ivRefreshList.setOnClickListener(v -> refreshQueue(SongCase.getSongList()));
 
         rvQueue = view.findViewById(R.id.rvQueue);
         rvQueue.setHasFixedSize(true);
@@ -67,8 +64,15 @@ public class QueueFragment extends Fragment implements QueueHandler {
 
     @Override
     public void refreshQueue(ArrayList<SongClass> newQueueList) {
-        SongCase.queueList = newQueueList;
+        SongCase.setQueueList(newQueueList);
         myAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void shuffleActivated() {
+        SongCase.getQueueList().remove(CurrentMusic.getThisObject());
+        SongCase.getQueueList().add(0, CurrentMusic.getThisObject());
+        CurrentMusic.setIndex(0);
     }
 
     @Override
@@ -77,11 +81,11 @@ public class QueueFragment extends Fragment implements QueueHandler {
         SongCase.sortedList = new ArrayList<>();
 
         backgroundThread.execute(() -> {
-            while (SongCase.sortedList.size() <= SongCase.songList.size()) {
+            while (SongCase.getSortedList().size() <= SongCase.getSongList().size()) {
                 // Gera um numero aleatorio dentro do intervado entre 0 e o tamanho do array de musicas
-                int index = (int) Math.floor((Math.random() * SongCase.songList.size()));
-                if (!SongCase.sortedList.contains(SongCase.songList.get(index))) {
-                    SongCase.sortedList.add(SongCase.songList.get(index));
+                int index = (int) Math.floor((Math.random() * SongCase.getSongList().size()));
+                if (!SongCase.getSortedList().contains(SongCase.getSongList().get(index))) {
+                    SongCase.sortedList.add(SongCase.getSongList().get(index));
                 }
             }
         });
@@ -112,7 +116,7 @@ public class QueueFragment extends Fragment implements QueueHandler {
         @Override
         public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
             if (viewHolder.getAdapterPosition() == CurrentMusic.getIndex()){
-                refreshQueue(SongCase.queueList);
+                refreshQueue(SongCase.getQueueList());
             } else {
                 adapter.onSwipe(viewHolder.getAdapterPosition());
             }
