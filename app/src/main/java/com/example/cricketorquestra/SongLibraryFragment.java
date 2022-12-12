@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class SongLibraryFragment extends Fragment implements LibraryHandler{
@@ -37,12 +38,14 @@ public class SongLibraryFragment extends Fragment implements LibraryHandler{
         layoutManager = new LinearLayoutManager(this.getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        myAdapter = new SongLibraryAdapter(this.getContext());
+        myAdapter = new SongLibraryAdapter(this.getContext(), SongCase.songList);
         recyclerView.setAdapter(myAdapter);
     }
 
     @Override
     public void refreshLibrary (){
+        myAdapter.songList.clear();
+        myAdapter.songList.addAll(SongCase.songList);
         myAdapter.notifyDataSetChanged();
     }
 }

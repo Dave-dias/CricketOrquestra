@@ -1,5 +1,6 @@
 package com.example.cricketorquestra;
 
+import android.app.Application;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -44,7 +45,7 @@ public class QueueFragment extends Fragment implements QueueHandler {
         topToolbar = view.findViewById(R.id.topToolbar);
         ivRefreshList = view.findViewById(R.id.ivRefreshList);
 
-        ivRefreshList.setOnClickListener(v -> refreshQueue(Application.songList));
+        ivRefreshList.setOnClickListener(v -> refreshQueue(SongCase.songList));
 
         rvQueue = view.findViewById(R.id.rvQueue);
         rvQueue.setHasFixedSize(true);
@@ -66,21 +67,21 @@ public class QueueFragment extends Fragment implements QueueHandler {
 
     @Override
     public void refreshQueue(ArrayList<SongClass> newQueueList) {
-        Application.queueList = newQueueList;
+        SongCase.queueList = newQueueList;
         myAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void sortQueue() {
         Executor backgroundThread = Executors.newSingleThreadExecutor();
-        Application.sortedList = new ArrayList<>();
+        SongCase.sortedList = new ArrayList<>();
 
         backgroundThread.execute(() -> {
-            while (Application.sortedList.size() <= Application.songList.size()) {
+            while (SongCase.sortedList.size() <= SongCase.songList.size()) {
                 // Gera um numero aleatorio dentro do intervado entre 0 e o tamanho do array de musicas
-                int index = (int) Math.floor((Math.random() * Application.songList.size()));
-                if (!Application.sortedList.contains(Application.songList.get(index))) {
-                    Application.sortedList.add(Application.songList.get(index));
+                int index = (int) Math.floor((Math.random() * SongCase.songList.size()));
+                if (!SongCase.sortedList.contains(SongCase.songList.get(index))) {
+                    SongCase.sortedList.add(SongCase.songList.get(index));
                 }
             }
         });
@@ -91,16 +92,6 @@ public class QueueFragment extends Fragment implements QueueHandler {
 
         ItemTouchHelperClass (ItemTouchHandler adapter){
              this.adapter = adapter;
-        }
-
-        @Override
-        public boolean isLongPressDragEnabled() {
-            return true;
-        }
-
-        @Override
-        public boolean isItemViewSwipeEnabled() {
-            return true;
         }
 
         @Override
@@ -115,16 +106,15 @@ public class QueueFragment extends Fragment implements QueueHandler {
         @Override
         public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
             adapter.onDrag(viewHolder.getAdapterPosition(), target.getAdapterPosition());
-            refreshQueue(Application.queueList);
             return true;
         }
 
         @Override
         public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-            if (viewHolder.getAdapterPosition() != CurrentMusic.getIndex()){
-                adapter.onSwipe(viewHolder.getAdapterPosition());
+            if (viewHolder.getAdapterPosition() == CurrentMusic.getIndex()){
+                refreshQueue(SongCase.queueList);
             } else {
-                refreshQueue(Application.queueList);
+                adapter.onSwipe(viewHolder.getAdapterPosition());
             }
         }
     }

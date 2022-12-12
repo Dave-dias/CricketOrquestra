@@ -1,5 +1,6 @@
 package com.example.cricketorquestra;
 
+import android.app.Application;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,17 +46,17 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull QueueAdapter.ViewHolder holder, int position) {
-        holder.getTvCardName().setText((Application.queueList.get(position).getTitle()));
+        holder.getTvCardName().setText((SongCase.queueList.get(position).getTitle()));
     }
 
     @Override
     public int getItemCount() {
-        return Application.queueList.size();
+        return SongCase.queueList.size();
     }
 
     @Override
     public void onDrag(int oldPosition, int newPosition) {
-        Collections.swap(Application.queueList, oldPosition, newPosition);
+        Collections.swap(SongCase.queueList, oldPosition, newPosition);
         this.notifyItemMoved(oldPosition, newPosition);
 
         if (CurrentMusic.getIndex() == oldPosition){
@@ -65,7 +66,7 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.ViewHolder> 
 
     @Override
     public void onSwipe(int position) {
-        Application.queueList.remove(position);
+        SongCase.queueList.remove(position);
         this.notifyItemRemoved(position);
     }
 }

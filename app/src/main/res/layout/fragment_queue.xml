@@ -13,7 +13,7 @@
         android:id="@+id/appbarQueue"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="?attr/colorOnPrimary">
+        android:backgroundTint="?attr/colorOnSecondary">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/topToolbar"
@@ -31,10 +31,13 @@
                 android:id="@+id/ivRefreshList"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right"
-                android:layout_marginRight="10dp"
+                android:layout_gravity="end"
+                android:layout_marginEnd="10dp"
+                android:backgroundTint="?attr/colorPrimary"
                 android:clickable="true"
-                android:src="@drawable/ic_refresh" />
+                android:minHeight="48dp"
+                android:src="@drawable/ic_refresh"
+                tools:ignore="RtlHardcoded,SpeakableTextPresentCheck" />
 
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>

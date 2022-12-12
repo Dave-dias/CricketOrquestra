@@ -20,7 +20,7 @@ import androidx.fragment.app.FragmentManager;
 
 public class MainActivity extends AppCompatActivity implements MusicHandler, DisplayHandler{
     TextView tvNavBarLibrary, tvNavBarPlayer, tvNavBarQueue;
-    Drawable drwPlayer, drwLibrary;
+    Drawable drwPlayer, drwLibrary, drwQueue;
 
     Fragment MusicPlayerFrag, SongLibraryFrag, QueueFrag;
     FragmentManager fragmentManager;
@@ -37,14 +37,16 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         setContentView(R.layout.activity_main);
 
-        Application.context = MainActivity.this;
-
-        // Costumizando a actionbar
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
             getSupportActionBar().setLogo(R.mipmap.ic_launcher_foreground);
             getSupportActionBar().setDisplayUseLogoEnabled(true);
         }
+
+        mediaServiceIntent = new Intent(this, MediaPlayerService.class);
+        bindService(mediaServiceIntent, connection,Context.BIND_AUTO_CREATE);
+
+        setReceiverUp();
 
         notificationManagement = new NotificationManagement(this);
         notificationManagement.createNotificationChannel();
@@ -57,8 +59,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
         playerHandler = (PlayerHandler) MusicPlayerFrag;
         libraryHandler = (LibraryHandler) SongLibraryFrag;
         queueHandler = (QueueHandler) QueueFrag;
-
-        setReceiverUp();
 
         fragmentManager.beginTransaction()
                 .add(R.id.FragmentContainer, SongLibraryFrag)
@@ -73,36 +73,22 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
     @Override
     protected void onStart() {
         super.onStart();
-        mediaServiceIntent = new Intent(this, MediaPlayerService.class);
-        bindService(mediaServiceIntent, connection,Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
         setOnViews();
-
-        libraryHandler.refreshLibrary();
-        queueHandler.refreshQueue(Application.songList);
-        queueHandler.sortQueue();
-        onSelectedMusicLibrary(0);
 
         drwLibrary = tvNavBarLibrary.getCompoundDrawablesRelative()[3];
         drwPlayer = tvNavBarPlayer.getCompoundDrawablesRelative()[3];
+        drwQueue = tvNavBarQueue.getCompoundDrawablesRelative()[3];
         drwLibrary.setBounds(tvNavBarLibrary.getCompoundDrawablesRelative()[3].getBounds());
         drwPlayer.setBounds(tvNavBarPlayer.getCompoundDrawablesRelative()[3].getBounds());
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        stopService(mediaServiceIntent);
-        unbindService(connection);
+        drwQueue.setBounds(tvNavBarQueue.getCompoundDrawablesRelative()[3].getBounds());
     }
 
     @Override
     protected void onDestroy() {
         notificationManagement.cancelNotification();
+
+        stopService(mediaServiceIntent);
+        unbindService(connection);
         super.onDestroy();
     }
 
@@ -149,6 +135,8 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
         filter.addAction("Previous");
         filter.addAction("Next");
         filter.addAction("Discovered");
+        filter.addAction("Prepared");
+        filter.addAction("Stopped");
 
         // Classe que recebe o broadcast do NotificationReceiver
         BroadcastReceiver MainActivityReceiver = new BroadcastReceiver() {
@@ -166,6 +154,22 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
 
                         case NotificationManagement.ACTION_NEXT:
                             onNextAudioSelected();
+                            break;
+
+                        case NotificationManagement.ON_PREPARED:
+                            setPlayerUp();
+                            setQueueUp();
+                            break;
+
+                        case NotificationManagement.ON_STOP:
+                            onMusicStopped();
+                            break;
+
+                        case NotificationManagement.FILE_DISCOVERED:
+                            libraryHandler.refreshLibrary();
+                            queueHandler.refreshQueue(SongCase.songList);
+                            queueHandler.sortQueue();
+                            onSelectedMusicLibrary(0);
                             break;
                     }
                 }
@@ -224,13 +228,13 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
     // Reseta o media player e dá start na musica selecionada
     @Override
     public void onSelectedMusicLibrary(int index) {
-        queueHandler.refreshQueue(Application.songList);
+        queueHandler.refreshQueue(SongCase.songList);
         onSelectedQueue(index);
     }
 
     @Override
     public void onSelectedQueue(int index) {
-        CurrentMusic.setThisObject(Application.queueList.get(index));
+        CurrentMusic.setThisObject(SongCase.queueList.get(index));
         CurrentMusic.setIsPlaying(false);
         CurrentMusic.setIndex(index);
 
@@ -242,33 +246,23 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
     }
 
     @Override
-    public void setQueueUp() {
-        queueHandler.setViewsUp();
-    }
+    public void setQueueUp() {queueHandler.setViewsUp();}
 
     @Override
-    public void setPlayerUp() {
-        playerHandler.setViewsUp();
-    }
+    public void setPlayerUp() {playerHandler.setViewsUp();}
 
     @Override
-    public void setLibraryUp() {
-        libraryHandler.refreshLibrary();
-    }
+    public void setLibraryUp() {libraryHandler.refreshLibrary();}
 
     @Override
-    public void onMusicStopped() {
-        onNextAudioSelected();
-    }
+    public void onMusicStopped() {onNextAudioSelected();}
 
     @Override
-    public void onPlayPauseSwitch() {
-        mediaService.playPauseMedia();
-    }
+    public void onPlayPauseSwitch() {mediaService.playPauseMedia();}
 
     @Override
     public void onNextAudioSelected() {
-        if (CurrentMusic.getIndex() == Application.queueList.size() - 1) {
+        if (CurrentMusic.getIndex() == SongCase.queueList.size() - 1) {
             onSelectedQueue(CurrentMusic.getIndex());
         } else if (MusicPlayerFragment.currentPlayerState == PlayerStates.REPEAT_ONE_ON) {
             onSelectedQueue(CurrentMusic.getIndex());
@@ -295,23 +289,22 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
 
     @Override
     public void onShuffleSwitch() {
+        if (MusicPlayerFragment.currentPlayerState == PlayerStates.SHUFFLE_ON){
+            queueHandler.refreshQueue(SongCase.sortedList);
+        } else {
+            queueHandler.refreshQueue(SongCase.songList);
+        }
+
         mediaService.switchLoop(false);
-        queueHandler.refreshQueue(Application.sortedList);
         queueHandler.sortQueue();
     }
 
     @Override
-    public void onProgressChanged(int progress) {
-        mediaService.seekToProgress(progress);
-    }
+    public void onProgressChanged(int progress) {mediaService.seekToProgress(progress);}
 
     @Override
-    public int getCurrentProgress(){
-        return mediaService.getProgress();
-    }
+    public int getCurrentProgress(){return mediaService.getProgress();}
 
     @Override
-    public int getTotalProgress(){
-        return mediaService.getTotalProgress();
-    }
+    public int getTotalProgress(){return mediaService.getTotalProgress();}
 }

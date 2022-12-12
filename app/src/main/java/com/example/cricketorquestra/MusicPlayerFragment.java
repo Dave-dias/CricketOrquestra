@@ -117,9 +117,6 @@ public class MusicPlayerFragment extends Fragment implements PlayerHandler{
 
     @Override
     public void shuffleSwitch(PlayerStates currentPlayerState) {
-        ivRepeat.setImageResource(R.drawable.ic_repeat);
-        musicHandler.onShuffleSwitch();
-
         if (currentPlayerState == PlayerStates.SHUFFLE_ON) {
             MusicPlayerFragment.currentPlayerState = PlayerStates.SHUFFLE_OFF;
             ivShuffle.setImageResource(R.drawable.ic_shuffle);
@@ -127,6 +124,9 @@ public class MusicPlayerFragment extends Fragment implements PlayerHandler{
             MusicPlayerFragment.currentPlayerState = PlayerStates.SHUFFLE_ON;
             ivShuffle.setImageResource(R.drawable.ic_shuffle_on);
         }
+
+        ivRepeat.setImageResource(R.drawable.ic_repeat);
+        musicHandler.onShuffleSwitch();
     }
 
     @Override

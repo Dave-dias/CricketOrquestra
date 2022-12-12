@@ -14,7 +14,8 @@ public class NotificationManagement {
     final static String ACTION_PLAY_PAUSE = "Play/Pause";
     final static String ACTION_NEXT = "Next";
     final static String FILE_DISCOVERED = "Discovered";
-    final static String PROGRESS_UPDATE = "Progress update";
+    final static String ON_PREPARED = "Prepared";
+    final static String ON_STOP = "Stopped";
 
     NotificationManager manager;
     Context context;

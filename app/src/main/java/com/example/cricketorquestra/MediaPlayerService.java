@@ -15,9 +15,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         MediaPlayer.OnErrorListener, MediaPlayer.OnPreparedListener {
 
     private final IBinder binder = new LocalBinder();
-    private DisplayHandler displayHandler;
     private MediaPlayer mediaPlayer;
-    MusicHandler musicHandler;
 
     public MediaPlayerService (){
     }
@@ -48,8 +46,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        displayHandler = (DisplayHandler) Application.context;
-        musicHandler = (MusicHandler) Application.context;
 
         String audioFile = intent.getStringExtra("Audio File");
         mediaPlayer.reset();
@@ -72,7 +68,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mediaPlayer.stop();
         }
 
-        musicHandler.onMusicStopped();
+        Intent intent = new Intent(NotificationManagement.ON_STOP);
+        sendBroadcast(intent);
         stopSelf();
     }
 
@@ -98,8 +95,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     @Override
     public void onPrepared(MediaPlayer mp) {
         if (!mediaPlayer.isPlaying()){
-            displayHandler.setPlayerUp();
-            displayHandler.setQueueUp();
+            Intent intent = new Intent(NotificationManagement.ON_PREPARED);
+            sendBroadcast(intent);
             mediaPlayer.start();
         }
     }

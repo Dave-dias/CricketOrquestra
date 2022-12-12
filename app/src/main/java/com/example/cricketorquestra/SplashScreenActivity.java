@@ -2,12 +2,12 @@ package com.example.cricketorquestra;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,6 +18,8 @@ import androidx.core.content.ContextCompat;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @SuppressLint("CustomSplashScreen")
 public class SplashScreenActivity extends AppCompatActivity {
@@ -35,12 +37,8 @@ public class SplashScreenActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     REQUEST_CODE);
         } else {
-            if (Application.songList.size() != 0) {
-                Application.queueList = Application.songList;
-                startMainActivity();
-            } else {
-                Toast.makeText(this, "No audio file was found", Toast.LENGTH_LONG).show();
-            }
+            loadSongList();
+            startMainActivity();
         }
     }
 
@@ -70,13 +68,52 @@ public class SplashScreenActivity extends AppCompatActivity {
                 });
                 alertDialog.show();
             } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                if (Application.songList.size() != 0) {
-                    Application.queueList = Application.songList;
-                    startMainActivity();
+                loadSongList();
+                startMainActivity();
+            }
+        }
+    }
+
+    // Chama a função de scannear os arquivos e adiciona eles ao array
+    public void loadSongList() {
+        Executor backgroundThread = Executors.newSingleThreadExecutor();
+        Handler postExecute = new Handler(Looper.getMainLooper());
+        SongCase.finalSongList = new ArrayList<>();
+
+        backgroundThread.execute(() -> {
+            ArrayList<File> fileArray = findFiles(Environment.getExternalStorageDirectory());
+
+            for (File singleFile : fileArray) {
+                SongCase.finalSongList.add(new SongClass(singleFile.getName().replace(".mp3", "").replace(".wav", "")
+                        , singleFile.getPath()));
+            }
+            postExecute.post(() -> {
+                if (SongCase.finalSongList.size() != 0) {
+                    SongCase.setSongList(SongCase.finalSongList);
+                    SongCase.setQueueList(SongCase.getSongList());
+                    Intent fileDiscoveryIntent = new Intent(NotificationManagement.FILE_DISCOVERED);
+                    this.sendBroadcast(fileDiscoveryIntent);
                 } else {
                     Toast.makeText(this, "No audio file was found", Toast.LENGTH_LONG).show();
                 }
+            });
+        });
+    }
+
+    public ArrayList<File> findFiles(File fileToScan) {
+        ArrayList<File> fileArray = new ArrayList<>();
+        File[] files = fileToScan.listFiles();
+
+        if (files != null) {
+            for (File singleFile : files) {
+                // Caso o arquivo seja um diretorio chama ela propria passando o arquivo
+                if (singleFile.isDirectory() && !singleFile.isHidden()) {
+                    fileArray.addAll(findFiles(singleFile));
+                } else if (singleFile.getName().endsWith(".mp3") || singleFile.getName().endsWith(".wav")) {
+                    fileArray.add(singleFile);
+                }
             }
         }
+        return fileArray;
     }
 }
