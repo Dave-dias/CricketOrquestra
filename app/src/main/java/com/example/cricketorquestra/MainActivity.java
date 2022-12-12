@@ -40,8 +40,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         setContentView(R.layout.activity_main);
 
-        setReceiverUp();
-
         notificationManagement = new NotificationManagement(this);
         notificationManagement.createNotificationChannel();
 
@@ -62,6 +60,9 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
                 .hide(QueueFrag)
                 .show(MusicPlayerFrag)
                 .commitNow();
+
+        actionBarSwitch(true);
+        setReceiverUp();
     }
 
     @Override
@@ -78,6 +79,8 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
         drwLibrary.setBounds(tvNavBarLibrary.getCompoundDrawablesRelative()[3].getBounds());
         drwPlayer.setBounds(tvNavBarPlayer.getCompoundDrawablesRelative()[3].getBounds());
         drwQueue.setBounds(tvNavBarQueue.getCompoundDrawablesRelative()[3].getBounds());
+
+        onConfigurationChanged(this.getResources().getConfiguration());
     }
 
     @Override
@@ -95,18 +98,18 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
 
         if (getSupportActionBar() != null) {
             if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                actionBarSwitch(false);
                 tvNavBarPlayer.setCompoundDrawables(null, null, null, null);
                 tvNavBarLibrary.setCompoundDrawables(null, null, null, null);
                 tvNavBarQueue.setCompoundDrawables(null, null,null, null);
-                getSupportActionBar().hide();
             } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                actionBarSwitch(true);
                 tvNavBarPlayer.setCompoundDrawablesRelativeWithIntrinsicBounds(
                         null, null, null, drwPlayer);
                 tvNavBarLibrary.setCompoundDrawablesRelativeWithIntrinsicBounds(
                         null, null, null, drwLibrary);
-                tvNavBarLibrary.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                tvNavBarQueue.setCompoundDrawablesRelativeWithIntrinsicBounds(
                         null, null, null, drwQueue);
-                getSupportActionBar().show();
             }
         }
     }
@@ -137,7 +140,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
         filter.addAction("Prepared");
         filter.addAction("Stopped");
 
-        // Classe que recebe o broadcast do NotificationReceiver
         BroadcastReceiver MainActivityReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -178,6 +180,20 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
         registerReceiver(MainActivityReceiver, filter);
     }
 
+    private void actionBarSwitch(boolean isVisible) {
+        if (getSupportActionBar() != null){
+            if (isVisible){
+                getSupportActionBar().show();
+            } else {
+                getSupportActionBar().hide();
+            }
+
+            getSupportActionBar().setDisplayUseLogoEnabled(true);
+            getSupportActionBar().setLogo(R.mipmap.ic_launcher_foreground);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+    }
+
     private void setOnViews() {
         tvNavBarLibrary = findViewById(R.id.tvNavLibrary);
         tvNavBarQueue = findViewById(R.id.tvNavQueue);
@@ -190,33 +206,37 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
     }
 
     void fragmentSwitch(DisplayedFragment display) {
-        switch (display) {
-            case SONG_LIBRARY:
-                fragmentManager.beginTransaction()
-                        .show(SongLibraryFrag)
-                        .hide(MusicPlayerFrag)
-                        .hide(QueueFrag)
-                        .commitNow();
-                break;
-            case MUSIC_PLAYER:
-                fragmentManager.beginTransaction()
-                        .show(MusicPlayerFrag)
-                        .hide(SongLibraryFrag)
-                        .hide(QueueFrag)
-                        .commitNow();
-                break;
+            switch (display) {
+                case SONG_LIBRARY:
+                    actionBarSwitch(true);
+                    fragmentManager.beginTransaction()
+                            .show(SongLibraryFrag)
+                            .hide(MusicPlayerFrag)
+                            .hide(QueueFrag)
+                            .commitNow();
+                    break;
+                    
+                case MUSIC_PLAYER:
+                    actionBarSwitch(true);
+                    fragmentManager.beginTransaction()
+                            .show(MusicPlayerFrag)
+                            .hide(SongLibraryFrag)
+                            .hide(QueueFrag)
+                            .commitNow();
+                    break;
 
-            case QUEUE_LIST:
-                fragmentManager.beginTransaction()
-                        .show(QueueFrag)
-                        .hide(MusicPlayerFrag)
-                        .hide(SongLibraryFrag)
-                        .commitNow();
-                break;
-        }
+                case QUEUE_LIST:
+                    actionBarSwitch(false);
+                    fragmentManager.beginTransaction()
+                            .show(QueueFrag)
+                            .hide(MusicPlayerFrag)
+                            .hide(SongLibraryFrag)
+                            .commitNow();
+                    break;
+            }
     }
 
-    // Reseta o media player e dá start na musica selecionada
+
     @Override
     public void onSelectedMusicLibrary(int index) {
         queueHandler.refreshQueue(SongCase.getSongList());
