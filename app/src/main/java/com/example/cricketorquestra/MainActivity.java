@@ -42,15 +42,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
 
         setReceiverUp();
 
-        mediaServiceIntent = new Intent(this, MediaPlayerService.class);
-        bindService(mediaServiceIntent, connection,Context.BIND_AUTO_CREATE);
-
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setLogo(R.mipmap.ic_launcher_foreground);
-            getSupportActionBar().setDisplayUseLogoEnabled(true);
-        }
-
         notificationManagement = new NotificationManagement(this);
         notificationManagement.createNotificationChannel();
 
@@ -77,6 +68,9 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
     protected void onStart() {
         super.onStart();
         setOnViews();
+
+        mediaServiceIntent = new Intent(this, MediaPlayerService.class);
+        bindService(mediaServiceIntent, connection,Context.BIND_AUTO_CREATE);
 
         drwLibrary = tvNavBarLibrary.getCompoundDrawablesRelative()[3];
         drwPlayer = tvNavBarPlayer.getCompoundDrawablesRelative()[3];
@@ -130,8 +124,7 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
         }
 
         @Override
-        public void onServiceDisconnected(ComponentName name) {
-        }
+        public void onServiceDisconnected(ComponentName name) {}
     };
 
 
@@ -199,9 +192,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
     void fragmentSwitch(DisplayedFragment display) {
         switch (display) {
             case SONG_LIBRARY:
-                if (getSupportActionBar() != null){
-                    getSupportActionBar().show();
-                }
                 fragmentManager.beginTransaction()
                         .show(SongLibraryFrag)
                         .hide(MusicPlayerFrag)
@@ -209,9 +199,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
                         .commitNow();
                 break;
             case MUSIC_PLAYER:
-                if (getSupportActionBar() != null){
-                    getSupportActionBar().show();
-                }
                 fragmentManager.beginTransaction()
                         .show(MusicPlayerFrag)
                         .hide(SongLibraryFrag)
@@ -220,9 +207,6 @@ public class MainActivity extends AppCompatActivity implements MusicHandler, Dis
                 break;
 
             case QUEUE_LIST:
-                if (getSupportActionBar() != null){
-                    getSupportActionBar().hide();
-                }
                 fragmentManager.beginTransaction()
                         .show(QueueFrag)
                         .hide(MusicPlayerFrag)
